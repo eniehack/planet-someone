@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>planet eniehack</title>
+</head>
+<body>
+   <main>
+    <article>
+        <h1>planet eniehack</h1>
+        {{ range $i, $k := .Keys -}}
+        <section id="{{$k}}">
+            <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
+            <ul>
+            {{ range $j, $post := (index $.Posts $k) -}}
+                <li id="{{- $post.Id -}}">
+                    <img src="{{- $post.SiteUrl -}}/favicon.ico" />
+                    <p>
+                        {{- $post.Content -}}
+                    </p>
+                    (<a href="{{- $post.Url -}}">
+                        <time datetime="{{- $post.Date.Format "2006-01-02 15:04" -}}">{{- $post.Date.Format "15:04" -}}</time>
+                    </a>)
+                </li>
+            {{ end -}}
+            </ul>
+        </section>
+        {{ end -}}
+    </article>
+   </main> 
+</body>
+</html>

@@ -1,0 +1,6 @@
+go 1.22.2
+
+use ./bin/ctl
+use .
+use ./bin/picker
+use ./bin/html-builder

@@ -1,0 +1,9 @@
+db:
+  db: ""
+  migration_dir: ""
+picker:
+  sites:
+    - url: ""
+      name: ""
+      id: "" 
+      type: ""
