@@ -9,6 +9,9 @@
    <main>
     <article>
         <h1>planet eniehack</h1>
+        <p>
+            <a href="https://planet.debian.org/">Planet Debian</a>、<a href="https://planet.osm.org/">Planet OSM</a>や<a href="https://kanzaki.com/info/planet">Planet masaka</a>のように、プロジェクトや個人の最新情報を1つのページにまとめたものです。
+        </p>
         {{ range $i, $k := .Keys -}}
         <section id="{{$k}}">
             <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
@@ -29,5 +32,8 @@
         {{ end -}}
     </article>
    </main> 
+   <footer>
+        <a href="https://github.com/eniehack/planet-someone">ソースコード（GitHub）</a>
+   </footer>
 </body>
 </html>
