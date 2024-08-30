@@ -22,7 +22,7 @@ func (h *MastodonHandler) Pick() error {
 	if err != nil {
 		return fmt.Errorf("error parsing RSS feed: %s", err)
 	}
-	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, posts_source, date) VALUES (?, ?, ?, ?, ?);")
+	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, date) VALUES (?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("cannot make prepare statement: %s", err)
 	}
@@ -30,6 +30,7 @@ func (h *MastodonHandler) Pick() error {
 	for _, item := range feed.Items {
 		if item.PublishedParsed.After(lastRun) {
 			id := ulid.Make()
+			id.SetTime(uint64(item.PublishedParsed.UnixMilli()))
 			if _, err := stmt.Exec(id.String(), item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 			}
