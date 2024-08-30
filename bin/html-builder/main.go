@@ -57,7 +57,7 @@ func main() {
 			`SELECT P.id, P.title, P.url, P.date, S.site_url, S.name
 			 FROM posts AS P
 			 JOIN sources AS S
-			   ON P.posts_source = S.id
+			   ON P.src = S.id
 			 WHERE DATE(date) = ?;`,
 			dateStr,
 		)

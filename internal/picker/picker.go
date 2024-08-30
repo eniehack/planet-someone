@@ -14,7 +14,6 @@ type FeedPicker interface {
 
 type Source struct {
 	Id        int    `db:"id"`
-	Alias     string `db:"id_alias"`
 	SourceUrl string `db:"source_url"`
 	Type      int    `db:"type"`
 }

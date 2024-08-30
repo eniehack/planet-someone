@@ -23,7 +23,7 @@ func (h *BaseHandler) ReadLastRunTime(src int) (time.Time, error) {
 }
 
 func (h *BaseHandler) SaveLastRunTime(t time.Time, src int) error {
-	if _, err := h.DB.Exec("INSERT INTO crawl_time VALUES (?, ?);", t.Unix(), src); err != nil {
+	if _, err := h.DB.Exec("UPDATE crawl_time SET timestamp = ? WHERE source = ?;", t.Unix(), src); err != nil {
 		return err
 	}
 	return nil
