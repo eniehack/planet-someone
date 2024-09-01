@@ -41,7 +41,7 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 	}
 	n, err := migrate.ExecContext(ctx, db.DB, SQLITE+"3", migrations, migrate.Up)
 	if err != nil {
-		return fmt.Errorf("cannot exec migration: ", err)
+		return fmt.Errorf("cannot exec migration: %s", err)
 	}
 	log.Printf("apply %d migrations", n)
 	return nil
