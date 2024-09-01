@@ -47,12 +47,6 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-type SiteMetadata struct {
-	Title   string `goquery:"title,text"`
-	IconUrl string `goquery:"link,[rel=icon],[href]"`
-	FeedUrl string `goquery:"link,[rel=alternate]"`
-}
-
 func main() {
 	cmd := &cli.Command{
 		Commands: []*cli.Command{
