@@ -36,7 +36,7 @@ func main() {
 	}
 	defer db.Close()
 	srcs := []picker.Source{}
-	if err := db.Select(&srcs, "SELECT id, source_url, type FROM sources;"); err != nil {
+	if err := db.Select(&srcs, "SELECT id, source_url, site_url, type FROM sources;"); err != nil {
 		log.Fatalln("cannot exec query fetch sources:", err)
 	}
 	for _, src := range srcs {
