@@ -33,7 +33,7 @@ func resolveAbsUrl(baseUrl *url.URL, path string) (*url.URL, error) {
 func initAction(ctx context.Context, cmd *cli.Command) error {
 	db, err := sqlx.Connect(SQLITE, fmt.Sprintf("file:%s", cmd.String("database")))
 	if err != nil {
-		return fmt.Errorf("cannot connect to sqlite file: ", err)
+		return fmt.Errorf("cannot connect to sqlite file: %s", err)
 	}
 	defer db.Close()
 	migrations := &migrate.FileMigrationSource{
