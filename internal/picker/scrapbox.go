@@ -28,11 +28,12 @@ func (h *ScrapboxHandler) Pick() error {
 	}
 	// 新しい記事を探す
 	for _, item := range feed.Items {
-		if item.PublishedParsed.After(lastRun) {
-			id := ulid.Make()
-			if _, err := stmt.Exec(id.String(), item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
-				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
-			}
+		if item.PublishedParsed.Before(lastRun) {
+			continue
+		}
+		id := ulid.Make()
+		if _, err := stmt.Exec(id.String(), item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
+			return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 		}
 	}
 	// 現在の時刻を保存
