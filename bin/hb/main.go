@@ -15,15 +15,12 @@ import (
 )
 
 type Post struct {
-	Id          string
-	Content     string
-	Url         string
-	Date        string
-	ParsedDate  *time.Time
-	SiteId      string
-	SiteUrl     string
-	SiteIconUrl string
-	SiteTitle   string
+	Id         string
+	Content    string
+	Url        string
+	Date       string
+	ParsedDate *time.Time
+	Site       *Site
 }
 
 type Site struct {
@@ -76,7 +73,17 @@ func main() {
 		}
 		for res.Next() {
 			post := Post{}
-			if err := res.Scan(&post.Id, &post.Content, &post.Url, &post.Date, &post.SiteId, &post.SiteUrl, &post.SiteIconUrl, &post.SiteTitle); err != nil {
+			site := Site{}
+			if err := res.Scan(
+				&post.Id,
+				&post.Content,
+				&post.Url,
+				&post.Date,
+				&site.Id,
+				&site.Url,
+				&site.IconUrl,
+				&site.Title,
+			); err != nil {
 				log.Fatalln(err)
 			}
 			parsedDate, err := time.Parse(time.RFC3339, post.Date)
@@ -84,6 +91,7 @@ func main() {
 				log.Println("cannot parse date:", err)
 			}
 			post.ParsedDate = &parsedDate
+			post.Site = &site
 			posts[dateStr] = append(posts[dateStr], post)
 		}
 	}

@@ -33,8 +33,8 @@
             <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
             <ul style="padding-left: 20px;">
             {{ range $j, $post := (index $.Posts $k) -}}
-                <li class="post site-{{- $post.SiteId -}}" id="{{- $post.Id -}}">
-                    <img src="{{- $post.SiteIconUrl -}}" width="16" height="16" />
+                <li class="post site-{{- $post.Site.Id -}}" id="{{- $post.Id -}}">
+                    <img src="{{- $post.Site.IconUrl -}}" width="16" height="16" />
                     <p>
                         {{- $post.Content -}}
                     </p>
@@ -50,4 +50,3 @@
         <a href="https://github.com/eniehack/planet-someone">ソースコード（GitHub）</a>
    </footer>
 </body>
-</html>
