@@ -22,6 +22,7 @@ type Config struct {
 type DbConfig struct {
 	MigrationDir string `yaml:"migration_dir"`
 	DB           string `yaml:"db"`
+	TimeZone     string `yaml:"timezone"`
 }
 
 type PickerConfig struct {

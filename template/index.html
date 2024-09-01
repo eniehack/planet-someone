@@ -38,7 +38,7 @@
                     <p>
                         {{- $post.Content -}}
                     </p>
-                    (<a href="{{- $post.Url -}}"><time datetime="{{- $post.ParsedDate.Format "2006-01-02T15:04:05Z07:00" -}}">{{- $post.ParsedDate.Format "15:04" -}}</time></a>)
+                    (<a href="{{- $post.Url -}}"><time datetime="{{- $post.ParsedDate.Format "2006-01-02T15:04:05Z07:00"  -}}">{{- $post.ParsedDate.Format "15:04" -}}</time></a>)
                 </li>
             {{ end -}}
             </ul>

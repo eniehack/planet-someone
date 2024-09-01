@@ -9,6 +9,8 @@ import (
 	"sort"
 	"time"
 
+	_ "time/tzdata"
+
 	"github.com/eniehack/planet-eniehack/internal/config"
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
@@ -57,7 +59,11 @@ func main() {
 		log.Fatalln("cannot parse template:", err)
 	}
 	posts := make(map[string][]Post)
-	today := time.Now()
+	tz, err := time.LoadLocation(c.DB.TimeZone)
+	if err != nil {
+		log.Fatalln("cannot parse timezone:", err)
+	}
+	today := time.Now().In(tz)
 	for i := today; today.Sub(i).Abs().Hours() <= (time.Hour * 24 * 14).Hours(); i = i.Add(time.Hour * -24) {
 		dateStr := i.Format("2006-01-02")
 		res, err := db.Query(
@@ -65,7 +71,7 @@ func main() {
 			 FROM posts AS P
 			 JOIN sources AS S
 			   ON P.src = S.id
-			 WHERE DATE(date) = ?;`,
+			 WHERE DATE(P.date) = ?;`,
 			dateStr,
 		)
 		if err != nil {
@@ -88,9 +94,10 @@ func main() {
 			}
 			parsedDate, err := time.Parse(time.RFC3339, post.Date)
 			if err != nil {
-				log.Println("cannot parse date:", err)
+				log.Fatalln(err)
 			}
-			post.ParsedDate = &parsedDate
+			tzAppliedParsedDate := parsedDate.In(tz)
+			post.ParsedDate = &tzAppliedParsedDate
 			post.Site = &site
 			posts[dateStr] = append(posts[dateStr], post)
 		}
