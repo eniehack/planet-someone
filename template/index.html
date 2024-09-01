@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>planet eniehack</title>
+    <style>
+        .post > p {
+            display: inline;
+        }
+        {{ range $site := .Sites -}}
+            li.site-{{ $site.Id }}::before {
+                display: inline-block;
+                background-image: url("{{$site.IconUrl}}");
+                height: 16px;
+                width: 16px;
+            }
+            li.site-{{ $site.Id }} {
+                list-style: none;
+            }
+        {{ end -}}
+    </style>
 </head>
 <body>
    <main>
@@ -15,16 +31,14 @@
         {{ range $i, $k := .Keys -}}
         <section id="{{$k}}">
             <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
-            <ul>
+            <ul style="padding-left: 20px;">
             {{ range $j, $post := (index $.Posts $k) -}}
-                <li id="{{- $post.Id -}}">
-                    <img src="{{- $post.SiteUrl -}}/favicon.ico" />
+                <li class="post site-{{- $post.SiteId -}}" id="{{- $post.Id -}}">
+                    <img src="{{- $post.SiteIconUrl -}}" width="16" height="16" />
                     <p>
                         {{- $post.Content -}}
                     </p>
-                    (<a href="{{- $post.Url -}}">
-                        <time datetime="{{- $post.Date.Format "2006-01-02 15:04" -}}">{{- $post.Date.Format "15:04" -}}</time>
-                    </a>)
+                    (<a href="{{- $post.Url -}}"><time datetime="{{- $post.ParsedDate.Format "2006-01-02T15:04:05Z07:00" -}}">{{- $post.ParsedDate.Format "15:04" -}}</time></a>)
                 </li>
             {{ end -}}
             </ul>

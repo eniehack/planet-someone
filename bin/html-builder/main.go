@@ -15,12 +15,22 @@ import (
 )
 
 type Post struct {
-	Id        string
-	Content   string
-	Url       string
-	Date      time.Time
-	SiteUrl   string
-	SiteTitle string
+	Id          string
+	Content     string
+	Url         string
+	Date        string
+	ParsedDate  *time.Time
+	SiteId      string
+	SiteUrl     string
+	SiteIconUrl string
+	SiteTitle   string
+}
+
+type Site struct {
+	Id      int    `db:"id"`
+	Url     string `db:"site_url"`
+	IconUrl string `db:"icon_url"`
+	Title   string `db:"name"`
 }
 
 func readConfig(configFilePath string) *config.Config {
@@ -54,7 +64,7 @@ func main() {
 	for i := today; today.Sub(i).Abs().Hours() <= (time.Hour * 24 * 14).Hours(); i = i.Add(time.Hour * -24) {
 		dateStr := i.Format("2006-01-02")
 		res, err := db.Query(
-			`SELECT P.id, P.title, P.url, P.date, S.site_url, S.name
+			`SELECT P.id, P.title, P.url, P.date, S.id, S.site_url, S.icon_url, S.name
 			 FROM posts AS P
 			 JOIN sources AS S
 			   ON P.src = S.id
@@ -66,9 +76,14 @@ func main() {
 		}
 		for res.Next() {
 			post := Post{}
-			if err := res.Scan(&post.Id, &post.Content, &post.Url, &post.Date, &post.SiteUrl, &post.SiteTitle); err != nil {
+			if err := res.Scan(&post.Id, &post.Content, &post.Url, &post.Date, &post.SiteId, &post.SiteUrl, &post.SiteIconUrl, &post.SiteTitle); err != nil {
 				log.Fatalln(err)
 			}
+			parsedDate, err := time.Parse(time.RFC3339, post.Date)
+			if err != nil {
+				log.Println("cannot parse date:", err)
+			}
+			post.ParsedDate = &parsedDate
 			posts[dateStr] = append(posts[dateStr], post)
 		}
 	}
@@ -77,9 +92,15 @@ func main() {
 		keys = append(keys, k)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+	sites := []Site{}
+
+	if err := db.Select(&sites, "SELECT id, site_url, icon_url, name from sources;"); err != nil {
+		log.Fatalln(err)
+	}
 	data := map[string]interface{}{
 		"Keys":  keys,
 		"Posts": posts,
+		"Sites": sites,
 	}
 	if err := tmpl.Execute(os.Stdout, data); err != nil {
 		log.Fatalln(err)
