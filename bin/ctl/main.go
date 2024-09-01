@@ -109,7 +109,7 @@ func main() {
 								return err
 							}
 							iconUrlElem := htmlquery.FindOne(doc, `//link[@rel="icon"]/@href`)
-							feedUrlElem := htmlquery.FindOne(doc, `//link[@rel="alternate" and (@type="application/xml+rss" or @type="application/xml+atom")]/@href`)
+							feedUrlElem := htmlquery.FindOne(doc, `//link[@rel="alternate" and (@type="application/rss+xml" or @type="application/atom+xml")]/@href`)
 							titleElem := htmlquery.FindOne(doc, `//title/text()`)
 							iconUrl, err := resolveAbsUrl(reqUrl, htmlquery.InnerText(iconUrlElem))
 							if err != nil {
