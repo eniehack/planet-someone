@@ -37,12 +37,12 @@ func (h *MisskeyHandler) Pick() error {
 	}
 	reqUrl, err := url.Parse(h.SiteConfig.SiteUrl)
 	if err != nil {
-		return fmt.Errorf("cannot parse url:", err)
+		return fmt.Errorf("cannot parse url: %s", err)
 	}
 	reqUrl.Path = "/api/users/notes"
 	resp, err := h.Fetch(reqUrl, lastRun)
 	if err != nil {
-		return fmt.Errorf("cannot fetch misskey posts:", err)
+		return fmt.Errorf("cannot fetch misskey posts: %s", err)
 	}
 	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, date) VALUES (?, ?, ?, ?, ?);")
 	if err != nil {
