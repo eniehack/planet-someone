@@ -6,6 +6,8 @@ all: pre-build planetctl picker hb
 
 pre-build:
 	mkdir -p ./dist
+	cp -r ./db ./dist/
+	cp -r ./template ./dist/
 
 planetctl: ./bin/planetctl/main.go
 	$(GO) $(FLAGS) build -o ./dist/planetctl ./bin/planetctl/main.go
