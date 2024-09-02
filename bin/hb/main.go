@@ -32,6 +32,10 @@ type Site struct {
 	Title   string `db:"name"`
 }
 
+type Config struct {
+	Url string
+}
+
 func readConfig(configFilePath string) *config.Config {
 	f, err := os.Open(configFilePath)
 	if err != nil {
@@ -58,6 +62,8 @@ func main() {
 	if err != nil {
 		log.Fatalln("cannot parse template:", err)
 	}
+	hbConfig := new(Config)
+	hbConfig.Url = c.Hb.Url
 	posts := make(map[string][]Post)
 	tz, err := time.LoadLocation(c.DB.TimeZone)
 	if err != nil {
@@ -113,9 +119,10 @@ func main() {
 		log.Fatalln(err)
 	}
 	data := map[string]interface{}{
-		"Keys":  keys,
-		"Posts": posts,
-		"Sites": sites,
+		"Keys":   keys,
+		"Posts":  posts,
+		"Sites":  sites,
+		"Config": hbConfig,
 	}
 	if err := tmpl.Execute(os.Stdout, data); err != nil {
 		log.Fatalln(err)

@@ -17,6 +17,11 @@ func New(f io.Reader) (*Config, error) {
 type Config struct {
 	DB     DbConfig     `yaml:"db"`
 	Picker PickerConfig `yaml:"picker"`
+	Hb     HbConfig     `yaml:"hb"`
+}
+
+type HbConfig struct {
+	Url string `yaml:"url"`
 }
 
 type DbConfig struct {
