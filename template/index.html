@@ -17,15 +17,17 @@
         .post > p {
             display: inline;
         }
+        .post {
+            margin-left: -16px;
+        }
         {{ range $site := .Sites -}}
-            li.site-{{ $site.Id }}::before {
-                display: inline-block;
-                background-image: url("{{$site.IconUrl}}");
-                height: 16px;
-                width: 16px;
-            }
             li.site-{{ $site.Id }} {
                 list-style: none;
+                padding: 10px 30px;
+                background-image: url({{$site.IconUrl}});
+                background-repeat: no-repeat;
+                background-position: left center;
+                background-size: 16px;
             }
         {{ end -}}
     </style>
@@ -40,10 +42,9 @@
         {{ range $i, $k := .Keys -}}
         <section id="{{$k}}">
             <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
-            <ul style="padding-left: 20px;">
+            <ul>
             {{ range $j, $post := (index $.Posts $k) -}}
                 <li class="post site-{{- $post.Site.Id -}}" id="{{- $post.Id -}}">
-                    <img src="{{- $post.Site.IconUrl -}}" width="16" height="16" />
                     <p>
                         {{- $post.Content -}}
                     </p>
