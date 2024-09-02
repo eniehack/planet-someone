@@ -64,7 +64,7 @@ func main() {
 			 FROM posts AS P
 			 JOIN sources AS S
 			   ON P.src = S.id
-			 WHERE DATE(P.date) = ?
+			 WHERE DATE(P.date, "localtime") = ?
 			 ORDER BY P.date DESC;`,
 			dateStr,
 		)
