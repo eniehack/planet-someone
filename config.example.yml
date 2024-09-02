@@ -1,9 +1,6 @@
 db:
   db: ""
   migration_dir: ""
-picker:
-  sites:
-    - url: ""
-      name: ""
-      id: "" 
-      type: ""
+  timezone: "Asia/Tokyo"
+hb:
+  url: "https://www.eniehack.net/~eniehack/planet"
