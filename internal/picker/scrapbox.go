@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/mmcdole/gofeed"
-	"github.com/oklog/ulid/v2"
 )
 
 type ScrapboxHandler struct {
@@ -31,8 +30,8 @@ func (h *ScrapboxHandler) Pick() error {
 		if item.PublishedParsed.Before(lastRun) {
 			continue
 		}
-		id := ulid.Make()
-		if _, err := stmt.Exec(id.String(), item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
+		id := BuildID(item.PublishedParsed)
+		if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
 			return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 		}
 	}

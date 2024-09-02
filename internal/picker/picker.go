@@ -2,9 +2,11 @@ package picker
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/eniehack/planet-eniehack/internal/model"
 	"github.com/jmoiron/sqlx"
+	"github.com/oklog/ulid/v2"
 )
 
 // RecipeScraper インターフェースを定義
@@ -44,4 +46,10 @@ func PickerFactory(db *sqlx.DB, src *Source) (FeedPicker, error) {
 	default:
 		return nil, fmt.Errorf("unsupported type site: %d", src.Id)
 	}
+}
+
+func BuildID(t *time.Time) string {
+	id := ulid.Make()
+	id.SetTime(uint64(t.Unix()))
+	return id.String()
 }
