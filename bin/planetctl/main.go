@@ -32,13 +32,14 @@ func resolveAbsUrl(baseUrl *url.URL, path string) (*url.URL, error) {
 }
 
 func initAction(ctx context.Context, cmd *cli.Command) error {
-	db, err := sqlx.Connect(SQLITE, fmt.Sprintf("file:%s", cmd.String("database")))
+	c := config.ReadConfig(cmd.String("config"))
+	db, err := sqlx.Connect(SQLITE, fmt.Sprintf("file:%s", c.DB.DB))
 	if err != nil {
 		return fmt.Errorf("cannot connect to sqlite file: %s", err)
 	}
 	defer db.Close()
 	migrations := &migrate.FileMigrationSource{
-		Dir: cmd.String("migration_dir"),
+		Dir: c.DB.MigrationDir,
 	}
 	n, err := migrate.ExecContext(ctx, db.DB, SQLITE+"3", migrations, migrate.Up)
 	if err != nil {
@@ -50,6 +51,12 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 
 func main() {
 	cmd := &cli.Command{
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "config",
+				Aliases: []string{"c"},
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name: "site",
@@ -71,10 +78,6 @@ func main() {
 								Name:     "source-url",
 								Aliases:  []string{"src"},
 								Required: false,
-							},
-							&cli.StringFlag{
-								Name:    "config",
-								Aliases: []string{"c"},
 							},
 						},
 						Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -171,19 +174,7 @@ func main() {
 				},
 			},
 			{
-				Name: "init",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:    "database",
-						Aliases: []string{"db"},
-						Value:   "./planet.sqlite",
-					},
-					&cli.StringFlag{
-						Name:    "migration_dir",
-						Aliases: []string{"m"},
-						Value:   "./db/migrations",
-					},
-				},
+				Name:   "init",
 				Action: initAction,
 			},
 		},
