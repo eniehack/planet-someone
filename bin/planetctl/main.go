@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/antchfx/htmlquery"
+	"github.com/eniehack/planet-eniehack/internal/config"
 	"github.com/eniehack/planet-eniehack/internal/model"
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
@@ -72,13 +73,13 @@ func main() {
 								Required: false,
 							},
 							&cli.StringFlag{
-								Name:     "database",
-								Aliases:  []string{"db"},
-								Required: false,
+								Name:    "config",
+								Aliases: []string{"c"},
 							},
 						},
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							db, err := sqlx.Connect(SQLITE, fmt.Sprintf("file:%s", cmd.String("database")))
+							c := config.ReadConfig(cmd.String("config"))
+							db, err := sqlx.Connect(SQLITE, fmt.Sprintf("file:%s", c.DB.DB))
 							if err != nil {
 								return fmt.Errorf("cannot connect to sqlite file: %s", err)
 							}

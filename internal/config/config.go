@@ -2,6 +2,8 @@ package config
 
 import (
 	"io"
+	"log"
+	"os"
 
 	"gopkg.in/yaml.v3"
 )
@@ -12,6 +14,19 @@ func New(f io.Reader) (*Config, error) {
 		return nil, err
 	}
 	return config, nil
+}
+
+func ReadConfig(configFilePath string) *Config {
+	f, err := os.Open(configFilePath)
+	if err != nil {
+		log.Fatalln("cannot open config file:", err)
+	}
+	defer f.Close()
+	c, err := New(f)
+	if err != nil {
+		log.Fatalln("cannot parse config file:", err)
+	}
+	return c
 }
 
 type Config struct {

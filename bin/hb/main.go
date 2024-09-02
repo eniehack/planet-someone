@@ -36,23 +36,10 @@ type Config struct {
 	Url string
 }
 
-func readConfig(configFilePath string) *config.Config {
-	f, err := os.Open(configFilePath)
-	if err != nil {
-		log.Fatalln("cannot open config file:", err)
-	}
-	defer f.Close()
-	c, err := config.New(f)
-	if err != nil {
-		log.Fatalln("cannot parse config file:", err)
-	}
-	return c
-}
-
 func main() {
 	var configFilePath string
 	flag.StringVar(&configFilePath, "config", "./config.yml", "config file")
-	c := readConfig(configFilePath)
+	c := config.ReadConfig(configFilePath)
 	db, err := sqlx.Connect("sqlite", fmt.Sprintf("file:%s", c.DB.DB))
 	if err != nil {
 		log.Fatalln("cannot open db:", err)
