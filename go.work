@@ -2,7 +2,7 @@ go 1.22.2
 
 use (
     .
-    ./bin/planetctl
-    ./bin/picker
-    ./bin/hb
+    ./cmd/planetctl
+    ./cmd/picker
+    ./cmd/hb
 )

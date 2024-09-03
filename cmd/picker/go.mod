@@ -1,4 +1,4 @@
-module github.com/eniehack/planet-eniehack/bin/picker
+module github.com/eniehack/planet-eniehack/cmd/picker
 
 go 1.22.2
 
