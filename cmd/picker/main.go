@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/eniehack/planet-eniehack/internal/config"
-	"github.com/eniehack/planet-eniehack/internal/picker"
+	"github.com/eniehack/planet-someone/internal/config"
+	"github.com/eniehack/planet-someone/internal/picker"
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 )

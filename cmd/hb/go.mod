@@ -1,3 +1,3 @@
-module github.com/eniehack/planet-eniehack/cmd/hb
+module github.com/eniehack/planet-someone/cmd/hb
 
 go 1.22.2

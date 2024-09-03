@@ -1,4 +1,4 @@
-module github.com/eniehack/planet-eniehack/cmd/planetctl
+module github.com/eniehack/planet-someone/cmd/planetctl
 
 go 1.22.2
 

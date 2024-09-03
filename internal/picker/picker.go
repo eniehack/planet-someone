@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/eniehack/planet-eniehack/internal/model"
+	"github.com/eniehack/planet-someone/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/oklog/ulid/v2"
 )

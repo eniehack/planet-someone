@@ -1,4 +1,4 @@
-module github.com/eniehack/planet-eniehack
+module github.com/eniehack/planet-someone
 
 go 1.22.2
 

@@ -9,8 +9,8 @@ import (
 	"os"
 
 	"github.com/antchfx/htmlquery"
-	"github.com/eniehack/planet-eniehack/internal/config"
-	"github.com/eniehack/planet-eniehack/internal/model"
+	"github.com/eniehack/planet-someone/internal/config"
+	"github.com/eniehack/planet-someone/internal/model"
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/urfave/cli/v3"

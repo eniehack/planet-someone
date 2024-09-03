@@ -11,7 +11,7 @@ import (
 
 	_ "time/tzdata"
 
-	"github.com/eniehack/planet-eniehack/internal/config"
+	"github.com/eniehack/planet-someone/internal/config"
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 )
