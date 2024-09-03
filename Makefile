@@ -1,6 +1,6 @@
 FLAGS =
 GO = go
-.PHONY: clean
+.PHONY: clean pre-build
 
 all: pre-build planetctl picker hb
 
@@ -9,13 +9,13 @@ pre-build:
 	cp -r ./db ./dist/
 	cp -r ./template ./dist/
 
-planetctl: ./bin/planetctl/main.go
+planetctl: pre-build ./bin/planetctl/main.go 
 	$(GO) $(FLAGS) build -o ./dist/planetctl ./bin/planetctl/main.go
 
-picker: ./bin/picker/main.go
+picker: pre-build ./bin/picker/main.go
 	$(GO) $(FLAGS) build -o ./dist/picker ./bin/picker/main.go
 
-hb: ./bin/hb/main.go
+hb: pre-build ./bin/hb/main.go
 	$(GO) $(FLAGS) build -o ./dist/hb ./bin/hb/main.go
 
 clean:
