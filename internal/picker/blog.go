@@ -2,6 +2,7 @@ package picker
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -12,10 +13,9 @@ type BlogHandler struct {
 }
 
 func (h *BlogHandler) Pick() error {
-	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id)
-	if err != nil {
-		fmt.Println("Error reading last run time:", err)
-		lastRun = time.Time{}
+	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
+	if lastRun == nil {
+		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
 	feed, err := gofeed.NewParser().ParseURL(h.SiteConfig.SourceUrl)
 	if err != nil {
@@ -27,16 +27,12 @@ func (h *BlogHandler) Pick() error {
 	}
 	// 新しい記事を探す
 	for _, item := range feed.Items {
-		if item.PublishedParsed.After(lastRun) {
+		if item.PublishedParsed.After(*lastRun) {
 			id := BuildID(item.PublishedParsed)
 			if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 			}
 		}
-	}
-	// 現在の時刻を保存
-	if err = h.SaveLastRunTime(time.Now(), h.SiteConfig.Id); err != nil {
-		return fmt.Errorf("error saving last run time: %s", err)
 	}
 	return nil
 }

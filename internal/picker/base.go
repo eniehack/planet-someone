@@ -6,20 +6,23 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var DEFAULT_DURATION time.Duration = time.Hour * 24 * 14
+
 type BaseHandler struct {
 	DB         *sqlx.DB
 	SiteConfig *Source
 }
 
-func (h *BaseHandler) ReadLastRunTime(src int) (time.Time, error) {
-	row := h.DB.QueryRow("SELECT timestamp FROM crawl_time WHERE source = ? ORDER BY timestamp ASC;", src)
+func (h *BaseHandler) ReadLastRunTime(src int, dur *time.Duration) (*time.Time, error) {
+	row := h.DB.QueryRow("SELECT unixepoch(date) FROM posts WHERE source = ? ORDER BY timestamp DESC;", src)
 	if row.Err() != nil {
-		return time.Time{}, row.Err()
+		t := time.Now().Add(*dur)
+		return &t, row.Err()
 	}
 	var timestamp_unit int64
 	row.Scan(&timestamp_unit)
 	timestamp := time.Unix(timestamp_unit, 0)
-	return timestamp, nil
+	return &timestamp, nil
 }
 
 func (h *BaseHandler) SaveLastRunTime(t time.Time, src int) error {

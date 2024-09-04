@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -25,10 +26,11 @@ type MastodonHandler struct {
 }
 
 func (h *MastodonHandler) Pick() error {
-	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id)
-	if err != nil {
-		fmt.Println("Error reading last run time:", err)
-		lastRun = time.Time{}
+	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
+	if lastRun == nil {
+		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
+		t := time.Now().AddDate(0, 0, -14)
+		lastRun = &t
 	}
 	resp, err := h.Fetch()
 	if err != nil {
@@ -45,17 +47,13 @@ func (h *MastodonHandler) Pick() error {
 			log.Println("mastodon, cannot parse time:", err)
 			continue
 		}
-		if 0 <= published.Compare(lastRun) && !item.Sensitive {
+		if 0 <= published.Compare(*lastRun) && !item.Sensitive {
 			id := BuildID(&published)
 			content := buildContent(item.Content)
 			if _, err := stmt.Exec(id, content, item.Url, h.SiteConfig.Id, published.Format(time.RFC3339)); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
 			}
 		}
-	}
-	// 現在の時刻を保存
-	if err = h.SaveLastRunTime(time.Now(), h.SiteConfig.Id); err != nil {
-		return fmt.Errorf("error saving last run time: %s", err)
 	}
 	return nil
 }

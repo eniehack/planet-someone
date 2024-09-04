@@ -3,6 +3,7 @@ package picker
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -31,10 +32,9 @@ type MisskeyAPIResponsePayload struct {
 }
 
 func (h *MisskeyHandler) Pick() error {
-	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id)
+	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
 	if err != nil {
-		log.Println("Error reading last run time:", err)
-		lastRun = time.Time{}
+		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
 	reqUrl, err := url.Parse(h.SiteConfig.SiteUrl)
 	if err != nil {
@@ -56,7 +56,7 @@ func (h *MisskeyHandler) Pick() error {
 			log.Println("", err)
 			continue
 		}
-		if 0 <= published.Compare(lastRun) && item.ContentWarning == nil {
+		if 0 <= published.Compare(*lastRun) && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
 			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Format(time.RFC3339)); err != nil {
@@ -64,14 +64,10 @@ func (h *MisskeyHandler) Pick() error {
 			}
 		}
 	}
-	// 現在の時刻を保存
-	if err = h.SaveLastRunTime(time.Now(), h.SiteConfig.Id); err != nil {
-		return fmt.Errorf("error saving last run time: %s", err)
-	}
 	return nil
 }
 
-func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun time.Time) (*[]MisskeyAPIResponsePayload, error) {
+func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun *time.Time) (*[]MisskeyAPIResponsePayload, error) {
 	reqPayload := &MisskeyAPIRequestPayload{
 		UserId:       h.SiteConfig.SourceUrl,
 		WithReplies:  false,

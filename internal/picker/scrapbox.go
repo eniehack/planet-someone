@@ -2,6 +2,7 @@ package picker
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -12,10 +13,9 @@ type ScrapboxHandler struct {
 }
 
 func (h *ScrapboxHandler) Pick() error {
-	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id)
+	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
 	if err != nil {
-		fmt.Println("Error reading last run time:", err)
-		lastRun = time.Time{}
+		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
 	feed, err := gofeed.NewParser().ParseURL(h.SiteConfig.SourceUrl)
 	if err != nil {
@@ -27,17 +27,13 @@ func (h *ScrapboxHandler) Pick() error {
 	}
 	// 新しい記事を探す
 	for _, item := range feed.Items {
-		if item.PublishedParsed.Before(lastRun) {
+		if item.PublishedParsed.Before(*lastRun) {
 			continue
 		}
 		id := BuildID(item.PublishedParsed)
 		if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
 			return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 		}
-	}
-	// 現在の時刻を保存
-	if err = h.SaveLastRunTime(time.Now(), h.SiteConfig.Id); err != nil {
-		return fmt.Errorf("error saving last run time: %s", err)
 	}
 	return nil
 }
