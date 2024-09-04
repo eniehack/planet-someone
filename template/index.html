@@ -20,11 +20,11 @@
         .post {
             margin-left: -16px;
         }
-        {{ range $site := .Sites -}}
-            li.site-{{ $site.Id }} {
+        {{ range $k, $v := .Sites -}}
+            li.site-{{ $k }} {
                 list-style: none;
                 padding: 10px 30px;
-                background-image: url({{$site.IconUrl}});
+                background-image: url({{$v.IconUrl}});
                 background-repeat: no-repeat;
                 background-position: left center;
                 background-size: 16px;
@@ -42,8 +42,8 @@
         <p>
             データソースは以下の通りです:
             <ul>
-                {{ range $i, $site := .Sites}}
-                    <li><a href="{{$site.Url}}"><img src="{{$site.IconUrl}}" width="16" height="16"/>{{$site.Title}}</a></li>
+                {{ range $k, $v := .Sites}}
+                    <li><a href="{{- $v.Url -}}"><img src="{{- $v.IconUrl -}}" width="16" height="16"/>{{$v.Title}}</a></li>
                 {{ end }}
             </ul>
         </p>
@@ -52,7 +52,7 @@
             <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
             <ul>
             {{ range $j, $post := (index $.Posts $k) -}}
-                <li class="post site-{{- $post.Site.Id -}}" id="{{- $post.Id -}}">
+                <li class="post {{ $post.Src -}}" id="{{- $post.Id -}}">
                     <p>
                         {{- $post.Content -}}
                     </p>
