@@ -22,7 +22,7 @@ type Post struct {
 	Url        string
 	Date       string
 	ParsedDate *time.Time
-	Site       *Site
+	Src        string
 }
 
 type Site struct {
@@ -70,10 +70,8 @@ func main() {
 	for i := today; today.Sub(i).Abs().Hours() <= (time.Hour * 24 * 14).Hours(); i = i.Add(time.Hour * -24) {
 		dateStr := i.Format("2006-01-02")
 		res, err := db.Query(
-			`SELECT P.id, P.title, P.url, P.date, S.id, S.site_url, S.icon_url, S.name
+			`SELECT P.id, P.title, P.url, P.date, P.src
 			 FROM posts AS P
-			 JOIN sources AS S
-			   ON P.src = S.id
 			 WHERE DATE(P.date, "localtime") = ?
 			 ORDER BY P.date DESC;`,
 			dateStr,
@@ -83,16 +81,12 @@ func main() {
 		}
 		for res.Next() {
 			post := Post{}
-			site := Site{}
 			if err := res.Scan(
 				&post.Id,
 				&post.Content,
 				&post.Url,
 				&post.Date,
-				&site.Id,
-				&site.Url,
-				&site.IconUrl,
-				&site.Title,
+				&post.Src,
 			); err != nil {
 				log.Fatalln(err)
 			}
@@ -110,11 +104,15 @@ func main() {
 		keys = append(keys, k)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
-	sites := []Site{}
-
-	if err := db.Select(&sites, "SELECT id, site_url, icon_url, name from sources;"); err != nil {
-		log.Fatalln(err)
+	sites := map[string]Site{}
+	for _, site := range c.Picker.Sites {
+		sites[site.Id] = Site{
+			Url:     site.SiteUrl,
+			IconUrl: site.IconUrl,
+			Title:   site.Name,
+		}
 	}
+
 	data := map[string]interface{}{
 		"Keys":   keys,
 		"Posts":  posts,

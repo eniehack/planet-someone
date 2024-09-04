@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/antchfx/htmlquery"
 	"github.com/eniehack/planet-someone/internal/config"
@@ -14,6 +16,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/urfave/cli/v3"
+	"gopkg.in/yaml.v3"
 	_ "modernc.org/sqlite"
 )
 
@@ -62,90 +65,69 @@ func main() {
 				Name: "site",
 				Commands: []*cli.Command{
 					{
-						Name:  "add",
-						Usage: "add site",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "type",
-								Value: "blog",
-							},
-							&cli.StringFlag{
-								Name:     "site-url",
-								Aliases:  []string{"url"},
-								Required: true,
-							},
-							&cli.StringFlag{
-								Name:     "source-url",
-								Aliases:  []string{"src"},
-								Required: false,
-							},
-						},
+						Name:  "validate",
+						Usage: "validate config file",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
 							c := config.ReadConfig(cmd.String("config"))
-							db, err := sqlx.Connect(SQLITE, fmt.Sprintf("file:%s", c.DB.DB))
-							if err != nil {
-								return fmt.Errorf("cannot connect to sqlite file: %s", err)
-							}
-							defer db.Close()
-							client := new(http.Client)
-							reqUrl, err := url.Parse(cmd.String("site-url"))
-							if err != nil {
-								return err
-							}
-							req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl.String(), nil)
-							if err != nil {
-								return err
-							}
-							req.Header.Set("User-Agent", UserAgent)
-							resp, err := client.Do(req)
-							if err != nil {
-								return err
-							}
-							defer resp.Body.Close()
-							doc, err := htmlquery.Parse(resp.Body)
-							if err != nil {
-								return err
-							}
-							iconUrlElem := htmlquery.FindOne(doc, `//link[@rel="icon"]/@href`)
-							feedUrlElem := htmlquery.FindOne(doc, `//link[@rel="alternate" and (@type="application/rss+xml" or @type="application/atom+xml")]/@href`)
-							titleElem := htmlquery.FindOne(doc, `//title/text()`)
-							iconUrl, err := resolveAbsUrl(reqUrl, htmlquery.InnerText(iconUrlElem))
-							if err != nil {
-								return err
-							}
-							title := htmlquery.InnerText(titleElem)
-							var srcUrl *url.URL
-							if len(cmd.String("source-url")) != 0 {
-								srcUrl, err = resolveAbsUrl(reqUrl, cmd.String("source-url"))
-								if err != nil {
-									return nil
+							newSites := []config.SiteConfig{}
+							for _, siteConfig := range c.Picker.Sites {
+								if len(siteConfig.Id) == 0 {
+									return errors.New("id is required")
 								}
-							} else if feedUrlElem != nil {
-								srcUrl, err = resolveAbsUrl(reqUrl, htmlquery.InnerText(feedUrlElem))
-								if err != nil {
-									return nil
+								if len(siteConfig.SiteUrl) == 0 {
+									return fmt.Errorf("%s: site_url is undefined", siteConfig.Id)
 								}
-							} else {
-								return fmt.Errorf("srcUrl is empty")
+								client := new(http.Client)
+								reqUrl, err := url.Parse(siteConfig.SiteUrl)
+								if err != nil {
+									return err
+								}
+								req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl.String(), nil)
+								if err != nil {
+									return err
+								}
+								req.Header.Set("User-Agent", UserAgent)
+								resp, err := client.Do(req)
+								if err != nil {
+									return err
+								}
+								defer resp.Body.Close()
+								doc, err := htmlquery.Parse(resp.Body)
+								if err != nil {
+									return err
+								}
+								if len(siteConfig.Name) == 0 {
+									titleElem := htmlquery.FindOne(doc, `//title/text()`)
+									siteConfig.Name = htmlquery.InnerText(titleElem)
+								}
+								if len(siteConfig.SourceUrl) == 0 {
+									feedUrlElem := htmlquery.FindOne(doc, `//link[@rel="alternate" and (@type="application/rss+xml" or @type="application/atom+xml")]/@href`)
+									srcUrl, err := resolveAbsUrl(reqUrl, htmlquery.InnerText(feedUrlElem))
+									if err != nil {
+										return err
+									}
+									siteConfig.SourceUrl = srcUrl.String()
+								}
+								if len(siteConfig.IconUrl) == 0 {
+									iconUrlElem := htmlquery.FindOne(doc, `//link[@rel="icon"]/@href`)
+									iconUrl, err := resolveAbsUrl(reqUrl, htmlquery.InnerText(iconUrlElem))
+									if err != nil {
+										return err
+									}
+									siteConfig.IconUrl = iconUrl.String()
+								}
+								time.Sleep(time.Second * 1)
+								newSites = append(newSites, siteConfig)
 							}
-							tx, err := db.BeginTx(ctx, nil)
+							f, err := os.OpenFile(cmd.String("config"), os.O_WRONLY|os.O_TRUNC, 0644)
 							if err != nil {
-								return fmt.Errorf("cannot open transaction: %s", err)
+								return err
 							}
-							if _, err := tx.ExecContext(
-								ctx,
-								`INSERT INTO sources (site_url, source_url, icon_url, name, type) VALUES (?, ?, ?, ?, ?);`,
-								reqUrl.String(),
-								srcUrl.String(),
-								iconUrl.String(),
-								title,
-								model.LookupTypeNumber(cmd.String("type")),
-							); err != nil {
-								tx.Rollback()
-								return fmt.Errorf("cannot exec statement on inserting site config: %s", err)
-							}
-							if err := tx.Commit(); err != nil {
-								log.Fatalln("cannot commit tx:", err)
+							defer f.Close()
+							nc := c
+							nc.Picker.Sites = newSites
+							if err := yaml.NewEncoder(f).Encode(nc); err != nil {
+								return err
 							}
 							return nil
 						},

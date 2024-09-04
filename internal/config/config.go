@@ -56,6 +56,7 @@ type SiteConfig struct {
 	SiteUrl   string `yaml:"site_url"`
 	Name      string `yaml:"name"`
 	Type      string `yaml:"type"`
+	IconUrl   string `yaml:"icon_url"`
 }
 
 type OgpConfig struct {

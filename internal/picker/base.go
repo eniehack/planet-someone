@@ -3,6 +3,7 @@ package picker
 import (
 	"time"
 
+	"github.com/eniehack/planet-someone/internal/config"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -10,7 +11,7 @@ var DEFAULT_DURATION time.Duration = time.Hour * 24 * 14
 
 type BaseHandler struct {
 	DB         *sqlx.DB
-	SiteConfig *Source
+	SiteConfig *config.SiteConfig
 }
 
 func (h *BaseHandler) ReadLastRunTime(src int, dur *time.Duration) (*time.Time, error) {

@@ -25,11 +25,7 @@ func main() {
 	defer db.Close()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	slog.SetDefault(logger)
-	srcs := []picker.Source{}
-	if err := db.Select(&srcs, "SELECT id, source_url, site_url, type FROM sources;"); err != nil {
-		log.Fatalln("cannot exec query fetch sources:", err)
-	}
-	for _, src := range srcs {
+	for _, src := range c.Picker.Sites {
 		p, err := picker.PickerFactory(db, &src)
 		if err != nil {
 			log.Fatalln("cannot create picker on pickerfactory:", err)
