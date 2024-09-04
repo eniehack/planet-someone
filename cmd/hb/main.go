@@ -32,8 +32,14 @@ type Site struct {
 	Title   string `db:"name"`
 }
 
+type Meta struct {
+	Url         string
+	Description string
+	Title       string
+}
+
 type Config struct {
-	Url string
+	Meta Meta
 }
 
 func main() {
@@ -50,9 +56,13 @@ func main() {
 		log.Fatalln("cannot parse template:", err)
 	}
 	hbConfig := new(Config)
-	hbConfig.Url = c.Hb.Url
+	hbConfig.Meta = Meta{
+		Url:         c.Hb.Url,
+		Title:       c.Hb.Meta.Title,
+		Description: c.Hb.Meta.Description,
+	}
 	posts := make(map[string][]Post)
-	tz, err := time.LoadLocation(c.DB.TimeZone)
+	tz, err := time.LoadLocation(c.Hb.TimeZone)
 	if err != nil {
 		log.Fatalln("cannot parse timezone:", err)
 	}

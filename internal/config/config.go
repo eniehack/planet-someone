@@ -36,13 +36,14 @@ type Config struct {
 }
 
 type HbConfig struct {
-	Url string `yaml:"url"`
+	Url      string    `yaml:"url"`
+	TimeZone string    `yaml:"timezone"`
+	Meta     OgpConfig `yaml:"ogp"`
 }
 
 type DbConfig struct {
 	MigrationDir string `yaml:"migration_dir"`
 	DB           string `yaml:"db"`
-	TimeZone     string `yaml:"timezone"`
 }
 
 type PickerConfig struct {
@@ -55,4 +56,9 @@ type SiteConfig struct {
 	SiteUrl   string `yaml:"site_url"`
 	Name      string `yaml:"name"`
 	Type      string `yaml:"type"`
+}
+
+type OgpConfig struct {
+	Title       string `yaml:"title"`
+	Description string `yaml:"description"`
 }

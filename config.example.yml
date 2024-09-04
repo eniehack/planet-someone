@@ -3,4 +3,7 @@ db:
   migration_dir: ""
   timezone: "Asia/Tokyo"
 hb:
-  url: "https://www.eniehack.net/~eniehack/planet"
+  meta:
+    url: "https://www.eniehack.net/~eniehack/planet"
+    title: "planet eniehack"
+    description: ""

@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>planet eniehack</title>
-    <meta name="og:title" content="planet eniehack" />
+    <title>{{- .Config.Meta.Title -}}</title>
+    <meta name="og:title" content="{{- .Config.Meta.Title }}" />
 	<meta name="og:type" content="website" />
-	<meta name="og:url" content="{{- .Config.Url -}}" />
+	<meta name="og:url" content="{{- .Config.Meta.Url -}}" />
 	<meta name="og:locale" content="ja-JP" />
-	<meta name="og:description" content="なかやばし死活監視サイト" />
-	<meta name="twitter:title" content="planet eniehack" />
-	<meta name="twitter:description" content="なかやばし死活監視サイト" />
+	<meta name="og:description" content="{{- .Config.Meta.Description -}}" />
+	<meta name="twitter:title" content="{{- .Config.Meta.Title }}" />
+	<meta name="twitter:description" content="{{- .Config.Meta.Description -}}" />
 	<meta name="twitter:creators" content="@eniehack" />
 	<meta name="twitter:card" content="summary" />
     <style>
