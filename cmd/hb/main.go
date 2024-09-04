@@ -27,10 +27,9 @@ type Post struct {
 }
 
 type Site struct {
-	Id      int    `db:"id"`
-	Url     string `db:"site_url"`
-	IconUrl string `db:"icon_url"`
-	Title   string `db:"name"`
+	Url     string
+	IconUrl string
+	Title   string
 }
 
 type Meta struct {
