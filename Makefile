@@ -1,22 +1,19 @@
 FLAGS =
 GO = go
+BINARIES = planetctl picker hb
+BINDIR = dist
+SRC = $(shell find . -type f -name '*.go' -print)
 .PHONY: clean pre-build
 
-all: pre-build planetctl picker hb
+all: pre-build $(BINARIES)
 
 pre-build:
-	mkdir -p ./dist
-	cp -r ./db ./dist/
-	cp -r ./template ./dist/
+	mkdir -p ./$(BINDIR)
+	cp -r ./db ./$(BINDIR)/
+	cp -r ./template ./$(BINDIR)/
 
-planetctl: pre-build ./cmd/planetctl/main.go 
-	$(GO) $(FLAGS) build -o ./dist/planetctl ./cmd/planetctl/main.go
-
-picker: pre-build ./cmd/picker/main.go
-	$(GO) $(FLAGS) build -o ./dist/picker ./cmd/picker/main.go
-
-hb: pre-build ./cmd/hb/main.go
-	$(GO) $(FLAGS) build -o ./dist/hb ./cmd/hb/main.go
+$(BINARIES): pre-build $(SRC) 
+	$(GO) $(FLAGS) build -o ./$(BINDIR)/$@ ./cmd/$@/main.go
 
 clean:
-	rm -rf ./dist
+	rm -rf ./$(BINDIR)
