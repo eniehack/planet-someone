@@ -19,7 +19,7 @@ type MisskeyAPIRequestPayload struct {
 	UserId       string `json:"userId"`
 	WithReplies  bool   `json:"withReplies"`
 	WithRenotes  bool   `json:"withRenotes"`
-	UntilDate    int    `json:"untilDate"`
+	UntilDate    int64  `json:"untilDate"`
 	AllowPartial bool   `json:"allowPartial"`
 }
 
@@ -76,7 +76,7 @@ func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun time.Time) (*[]MisskeyAP
 		UserId:       h.SiteConfig.SourceUrl,
 		WithReplies:  false,
 		WithRenotes:  false,
-		UntilDate:    int(lastRun.Unix()),
+		UntilDate:    lastRun.UnixMilli(),
 		AllowPartial: true,
 	}
 	slog.Debug("req params to misskey", "val", reqPayload)
