@@ -36,9 +36,10 @@ type Config struct {
 }
 
 type HbConfig struct {
-	Url      string    `yaml:"url"`
-	TimeZone string    `yaml:"timezone"`
-	Meta     OgpConfig `yaml:"ogp"`
+	Url         string    `yaml:"url"`
+	TemplateDir string    `yaml:"template_dir"`
+	TimeZone    string    `yaml:"timezone"`
+	Meta        OgpConfig `yaml:"ogp"`
 }
 
 type DbConfig struct {

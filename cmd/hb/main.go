@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"path"
 	"sort"
 	"time"
 
@@ -51,7 +52,7 @@ func main() {
 		log.Fatalln("cannot open db:", err)
 	}
 	defer db.Close()
-	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/index.html", "./template/"))
+	tmpl, err := template.ParseFiles(path.Join(c.Hb.TemplateDir, "/index.html"))
 	if err != nil {
 		log.Fatalln("cannot parse template:", err)
 	}
