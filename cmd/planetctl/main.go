@@ -12,7 +12,6 @@ import (
 
 	"github.com/antchfx/htmlquery"
 	"github.com/eniehack/planet-someone/internal/config"
-	"github.com/eniehack/planet-someone/internal/model"
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/urfave/cli/v3"
@@ -133,23 +132,24 @@ func main() {
 						},
 					},
 					{
-						Name:    "list",
-						Usage:   "list site",
-						Aliases: []string{"ls"},
+						Name:      "add",
+						ArgsUsage: "[id]",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							return nil
-						},
-					},
-					{
-						Name:    "remove",
-						Usage:   "rm site",
-						Aliases: []string{"rm"},
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name: "id",
-							},
-						},
-						Action: func(ctx context.Context, cmd *cli.Command) error {
+							if cmd.Args().Len() != 1 {
+								return errors.New("must be 1 argument")
+							}
+							c := config.ReadConfig(cmd.String("config"))
+							c.Picker.Sites = append(c.Picker.Sites, config.SiteConfig{
+								Id: cmd.Args().First(),
+							})
+							f, err := os.OpenFile(cmd.String("config"), os.O_WRONLY|os.O_TRUNC, 0644)
+							if err != nil {
+								return err
+							}
+							defer f.Close()
+							if err := yaml.NewEncoder(f).Encode(c); err != nil {
+								return err
+							}
 							return nil
 						},
 					},
