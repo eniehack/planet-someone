@@ -14,7 +14,7 @@ type BlogHandler struct {
 
 func (h *BlogHandler) Pick() error {
 	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
-	if lastRun == nil {
+	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
 	feed, err := gofeed.NewParser().ParseURL(h.SiteConfig.SourceUrl)

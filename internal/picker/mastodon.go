@@ -27,10 +27,8 @@ type MastodonHandler struct {
 
 func (h *MastodonHandler) Pick() error {
 	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
-	if lastRun == nil {
+	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
-		t := time.Now().AddDate(0, 0, -14)
-		lastRun = &t
 	}
 	resp, err := h.Fetch()
 	if err != nil {
