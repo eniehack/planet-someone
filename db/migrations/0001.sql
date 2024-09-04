@@ -10,10 +10,5 @@ CREATE TABLE posts (
     PRIMARY KEY (date, url)
 );
 
-CREATE TABLE crawl_time (
-    timestamp INTEGER,
-    source INTEGER NOT NULL PRIMARY KEY,
-    FOREIGN KEY (source) REFERENCES sources(id)
-);
 -- +migrate Down
 DROP TABLE posts;
