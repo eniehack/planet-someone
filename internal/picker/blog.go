@@ -27,7 +27,8 @@ func (h *BlogHandler) Pick() error {
 	}
 	// 新しい記事を探す
 	for _, item := range feed.Items {
-		if item.PublishedParsed.After(*lastRun) {
+		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.PublishedParsed.Format(time.RFC3339))
+		if lastRun.UnixMilli() < item.PublishedParsed.UnixMilli() {
 			id := BuildID(item.PublishedParsed)
 			if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)

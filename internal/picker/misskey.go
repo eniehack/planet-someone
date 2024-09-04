@@ -56,7 +56,8 @@ func (h *MisskeyHandler) Pick() error {
 			log.Println("", err)
 			continue
 		}
-		if 0 <= published.Compare(*lastRun) && item.ContentWarning == nil {
+		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.CreatedAt)
+		if lastRun.UnixMilli() < published.UnixMilli() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
 			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Format(time.RFC3339)); err != nil {

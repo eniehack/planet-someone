@@ -45,7 +45,8 @@ func (h *MastodonHandler) Pick() error {
 			log.Println("mastodon, cannot parse time:", err)
 			continue
 		}
-		if 0 <= published.Compare(*lastRun) && !item.Sensitive {
+		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.CreatedAt)
+		if lastRun.UnixMilli() < published.UnixMilli() && !item.Sensitive {
 			id := BuildID(&published)
 			content := buildContent(item.Content)
 			if _, err := stmt.Exec(id, content, item.Url, h.SiteConfig.Id, published.Format(time.RFC3339)); err != nil {
@@ -77,7 +78,12 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 	query.Add("exclude_replies", "true")
 	query.Add("exclude_reblogs", "true")
 	reqUrl.RawQuery = query.Encode()
-	resp, err := http.Get(reqUrl.String())
+	client := new(http.Client)
+	req, err := http.NewRequest(http.MethodGet, reqUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error access Misskey API: %s", err)
 	}
