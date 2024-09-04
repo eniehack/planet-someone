@@ -96,12 +96,11 @@ func main() {
 			); err != nil {
 				log.Fatalln(err)
 			}
-			parsedDate, err := time.Parse(time.RFC3339, post.Date)
+			parsedDate, err := time.ParseInLocation(time.RFC3339, post.Date, tz)
 			if err != nil {
 				log.Fatalln(err)
 			}
-			tzAppliedParsedDate := parsedDate.In(tz)
-			post.ParsedDate = &tzAppliedParsedDate
+			post.ParsedDate = &parsedDate
 			post.Site = &site
 			posts[dateStr] = append(posts[dateStr], post)
 		}
