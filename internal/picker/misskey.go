@@ -97,9 +97,17 @@ func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun time.Time) (*[]MisskeyAP
 		return nil, err
 	}
 	defer resp.Body.Close()
+	slog.Debug("misskey resp status:", "val", resp.Status)
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("unexpected statuscode")
+	}
+	respBuf := new(bytes.Buffer)
+	respBuf.ReadFrom(resp.Body)
+	slog.Debug("resp from misskey", "val", respBuf.String())
 
 	respPayload := []MisskeyAPIResponsePayload{}
-	if err := json.NewDecoder(resp.Body).Decode(&respPayload); err != nil {
+	if err := json.NewDecoder(respBuf).Decode(&respPayload); err != nil {
+		slog.Error("misskey: json decode error")
 		return nil, err
 	}
 	return &respPayload, nil
