@@ -60,7 +60,7 @@ func (h *MisskeyHandler) Pick() error {
 		if lastRun.UnixMilli() < published.UnixMilli() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
-			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Format(time.RFC3339)); err != nil {
+			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.UnixMicro()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", link, err)
 			}
 		}

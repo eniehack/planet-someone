@@ -20,7 +20,7 @@ type Post struct {
 	Id         string
 	Content    string
 	Url        string
-	Date       string
+	Date       int64
 	ParsedDate *time.Time
 	Src        string
 }
@@ -90,12 +90,8 @@ func main() {
 			); err != nil {
 				log.Fatalln(err)
 			}
-			parsedDate, err := time.ParseInLocation(time.RFC3339, post.Date, tz)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			post.ParsedDate = &parsedDate
-			post.Site = &site
+			tzAppliedDate := time.UnixMicro(post.Date).In(tz)
+			post.ParsedDate = &tzAppliedDate
 			posts[dateStr] = append(posts[dateStr], post)
 		}
 	}

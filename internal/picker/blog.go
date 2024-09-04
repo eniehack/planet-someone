@@ -30,7 +30,7 @@ func (h *BlogHandler) Pick() error {
 		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.PublishedParsed.Format(time.RFC3339))
 		if lastRun.UnixMilli() < item.PublishedParsed.UnixMilli() {
 			id := BuildID(item.PublishedParsed)
-			if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Format(time.RFC3339)); err != nil {
+			if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.UnixMicro()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 			}
 		}
