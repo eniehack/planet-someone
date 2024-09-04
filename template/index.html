@@ -37,7 +37,15 @@
     <article>
         <h1>planet eniehack</h1>
         <p>
-            <a href="https://planet.debian.org/">Planet Debian</a>、<a href="https://planet.osm.org/">Planet OSM</a>や<a href="https://kanzaki.com/info/planet">Planet masaka</a>のように、プロジェクトや個人の最新情報を1つのページにまとめたものです。
+            <a href="https://planet.debian.org/">Planet Debian</a>、<a href="https://planet.osm.org/">Planet OSM</a>や<a href="https://kanzaki.com/info/planet">Planet masaka</a>のように、僕個人の最新情報を1つのページにまとめたものです。
+        </p>
+        <p>
+            データソースは以下の通りです:
+            <ul>
+                {{ range $i, $site := .Sites}}
+                    <li><a href="{{$site.Url}}"><img src="{{$site.IconUrl}}" width="16" height="16"/>{{$site.Title}}</a></li>
+                {{ end }}
+            </ul>
         </p>
         {{ range $i, $k := .Keys -}}
         <section id="{{$k}}">
