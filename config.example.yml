@@ -1,8 +1,9 @@
 db:
-  db: ""
-  migration_dir: ""
-  timezone: "Asia/Tokyo"
+  db: "./planet.sqlite"
+  migration_dir: "./db/migrations"
 hb:
+  timezone: "Asia/Tokyo"
+  template_dir: "./template"
   meta:
     url: "https://www.eniehack.net/~eniehack/planet"
     title: "planet eniehack"
