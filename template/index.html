@@ -52,7 +52,7 @@
             <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
             <ul>
             {{ range $j, $post := (index $.Posts $k) -}}
-                <li class="post {{ $post.Src -}}" id="{{- $post.Id -}}">
+                <li class="post site-{{ $post.Src -}}" id="{{- $post.Id -}}">
                     <p>
                         {{- $post.Content -}}
                     </p>
