@@ -16,7 +16,7 @@ type BaseHandler struct {
 }
 
 func (h *BaseHandler) ReadLastRunTime(dur *time.Duration) (*time.Time, error) {
-	row := h.DB.QueryRow("SELECT unixepoch(date) FROM posts WHERE src = ? ORDER BY date DESC;", h.SiteConfig.Id)
+	row := h.DB.QueryRow("SELECT created_at FROM posts WHERE src = ? ORDER BY created_at DESC;", h.SiteConfig.Id)
 	if row.Err() != nil {
 		if row.Err() == sql.ErrNoRows {
 			t := time.Now().Add(*dur)

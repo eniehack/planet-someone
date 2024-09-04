@@ -6,8 +6,8 @@ CREATE TABLE posts (
     title text NOT NULL,
     url text NOT NULL, 
     src text NOT NULL,
-    date integer NOT NULL,
-    PRIMARY KEY (date, url)
+    created_at integer NOT NULL,
+    PRIMARY KEY (created_at, url)
 );
 
 -- +migrate Down

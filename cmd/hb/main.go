@@ -71,10 +71,10 @@ func main() {
 	for i := today; today.Sub(i).Abs().Hours() <= (time.Hour * 24 * 14).Hours(); i = i.Add(time.Hour * -24) {
 		dateStr := i.Format("2006-01-02")
 		res, err := db.Query(
-			`SELECT P.id, P.title, P.url, P.date, P.src
-			 FROM posts AS P
-			 WHERE DATE(P.date, "localtime") = ?
-			 ORDER BY P.date DESC;`,
+			`SELECT id, title, url, created_at, src
+			 FROM posts
+			 WHERE DATE(created_at) = ?
+			 ORDER BY created_at DESC;`,
 			dateStr,
 		)
 		if err != nil {
