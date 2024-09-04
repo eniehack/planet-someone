@@ -93,12 +93,9 @@ func main() {
 			}
 			tzAppliedDate := time.Unix(post.Date, 0).In(tz)
 			post.ParsedDate = &tzAppliedDate
-			fmt.Println(post)
 			posts[dateStr] = append(posts[dateStr], post)
 		}
 	}
-	fmt.Println(posts)
-	fmt.Println(len(posts))
 	keys := make([]string, 0, len(posts))
 	for k := range posts {
 		keys = append(keys, k)

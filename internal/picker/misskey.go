@@ -56,7 +56,6 @@ func (h *MisskeyHandler) Pick() error {
 			log.Println("", err)
 			continue
 		}
-		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.CreatedAt)
 		if lastRun.Unix() < published.Unix() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)

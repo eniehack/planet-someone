@@ -45,7 +45,6 @@ func (h *MastodonHandler) Pick() error {
 			log.Println("mastodon, cannot parse time:", err)
 			continue
 		}
-		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.CreatedAt)
 		if lastRun.Unix() < published.Unix() && !item.Sensitive {
 			id := BuildID(&published)
 			content := buildContent(item.Content)
