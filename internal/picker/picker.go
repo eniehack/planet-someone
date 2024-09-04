@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/eniehack/planet-someone/internal/config"
 	"github.com/eniehack/planet-someone/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/oklog/ulid/v2"
@@ -21,7 +22,7 @@ type Source struct {
 	Type      int    `db:"type"`
 }
 
-func PickerFactory(db *sqlx.DB, src *Source) (FeedPicker, error) {
+func PickerFactory(db *sqlx.DB, src *config.SiteConfig) (FeedPicker, error) {
 	switch src.Type {
 	case model.TYPE_MASTODON:
 		h := new(MastodonHandler)
@@ -44,7 +45,7 @@ func PickerFactory(db *sqlx.DB, src *Source) (FeedPicker, error) {
 		h.SiteConfig = src
 		return h, nil
 	default:
-		return nil, fmt.Errorf("unsupported type site: %d", src.Id)
+		return nil, fmt.Errorf("unsupported type site: %s", src.Id)
 	}
 }
 

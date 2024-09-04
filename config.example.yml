@@ -4,7 +4,15 @@ db:
 hb:
   timezone: "Asia/Tokyo"
   template_dir: "./template"
+  url: "https://www.eniehack.net/~eniehack/planet"
   meta:
-    url: "https://www.eniehack.net/~eniehack/planet"
     title: "planet eniehack"
     description: ""
+picker:
+    sites:
+        - id: scrapbox
+          source_url: 
+          site_url: https://scrapbox.io/eniehack/
+          name: 
+          type: scrapbox
+          icon_url: 

@@ -32,7 +32,7 @@ type MisskeyAPIResponsePayload struct {
 }
 
 func (h *MisskeyHandler) Pick() error {
-	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
+	lastRun, err := h.ReadLastRunTime(&DEFAULT_DURATION)
 	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
@@ -45,7 +45,7 @@ func (h *MisskeyHandler) Pick() error {
 	if err != nil {
 		return fmt.Errorf("cannot fetch misskey posts: %s", err)
 	}
-	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, date) VALUES (?, ?, ?, ?, ?);")
+	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, created_at) VALUES (?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("cannot make prepare statement: %s", err)
 	}
@@ -56,11 +56,10 @@ func (h *MisskeyHandler) Pick() error {
 			log.Println("", err)
 			continue
 		}
-		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.CreatedAt)
-		if lastRun.UnixMilli() < published.UnixMilli() && item.ContentWarning == nil {
+		if lastRun.Unix() < published.Unix() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
-			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Format(time.RFC3339)); err != nil {
+			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", link, err)
 			}
 		}

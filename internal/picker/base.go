@@ -1,8 +1,10 @@
 package picker
 
 import (
+	"database/sql"
 	"time"
 
+	"github.com/eniehack/planet-someone/internal/config"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -10,14 +12,17 @@ var DEFAULT_DURATION time.Duration = time.Hour * 24 * 14
 
 type BaseHandler struct {
 	DB         *sqlx.DB
-	SiteConfig *Source
+	SiteConfig *config.SiteConfig
 }
 
-func (h *BaseHandler) ReadLastRunTime(src int, dur *time.Duration) (*time.Time, error) {
-	row := h.DB.QueryRow("SELECT unixepoch(date) FROM posts WHERE src = ? ORDER BY date DESC;", src)
+func (h *BaseHandler) ReadLastRunTime(dur *time.Duration) (*time.Time, error) {
+	row := h.DB.QueryRow("SELECT created_at FROM posts WHERE src = ? ORDER BY created_at DESC;", h.SiteConfig.Id)
 	if row.Err() != nil {
-		t := time.Now().Add(*dur)
-		return &t, row.Err()
+		if row.Err() == sql.ErrNoRows {
+			t := time.Now().Add(*dur)
+			return &t, row.Err()
+		}
+		return nil, row.Err()
 	}
 	var timestamp_unit int64
 	row.Scan(&timestamp_unit)
