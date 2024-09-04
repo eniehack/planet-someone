@@ -57,10 +57,10 @@ func (h *MisskeyHandler) Pick() error {
 			continue
 		}
 		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.CreatedAt)
-		if lastRun.UnixMilli() < published.UnixMilli() && item.ContentWarning == nil {
+		if lastRun.Unix() < published.Unix() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
-			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.UnixMicro()); err != nil {
+			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", link, err)
 			}
 		}

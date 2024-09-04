@@ -46,10 +46,10 @@ func (h *MastodonHandler) Pick() error {
 			continue
 		}
 		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.CreatedAt)
-		if lastRun.UnixMilli() < published.UnixMilli() && !item.Sensitive {
+		if lastRun.Unix() < published.Unix() && !item.Sensitive {
 			id := BuildID(&published)
 			content := buildContent(item.Content)
-			if _, err := stmt.Exec(id, content, item.Url, h.SiteConfig.Id, published.UnixMicro()); err != nil {
+			if _, err := stmt.Exec(id, content, item.Url, h.SiteConfig.Id, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
 			}
 		}
