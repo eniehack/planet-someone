@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/eniehack/planet-someone/internal/config"
@@ -21,6 +23,8 @@ func main() {
 		log.Fatalln("cannot open db:", err)
 	}
 	defer db.Close()
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	slog.SetDefault(logger)
 	srcs := []picker.Source{}
 	if err := db.Select(&srcs, "SELECT id, source_url, site_url, type FROM sources;"); err != nil {
 		log.Fatalln("cannot exec query fetch sources:", err)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -78,8 +79,10 @@ func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun time.Time) (*[]MisskeyAP
 		UntilDate:    int(lastRun.Unix()),
 		AllowPartial: true,
 	}
+	slog.Debug("req params to misskey", "val", reqPayload)
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(reqPayload); err != nil {
+		slog.Error("misskey: json encode error")
 		return nil, err
 	}
 	req, err := http.NewRequest(http.MethodPost, reqUrl.String(), buf)
@@ -90,6 +93,7 @@ func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun time.Time) (*[]MisskeyAP
 	client := new(http.Client)
 	resp, err := client.Do(req)
 	if err != nil {
+		slog.Error("misskey: http req error")
 		return nil, err
 	}
 	defer resp.Body.Close()
