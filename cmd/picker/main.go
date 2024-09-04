@@ -17,6 +17,7 @@ import (
 func main() {
 	var configFilePath string
 	flag.StringVar(&configFilePath, "config", "./config.yml", "config file")
+	flag.Parse()
 	c := config.ReadConfig(configFilePath)
 	db, err := sqlx.Connect("sqlite", fmt.Sprintf("file:%s", c.DB.DB))
 	if err != nil {
