@@ -14,8 +14,8 @@ type BaseHandler struct {
 	SiteConfig *config.SiteConfig
 }
 
-func (h *BaseHandler) ReadLastRunTime(src int, dur *time.Duration) (*time.Time, error) {
-	row := h.DB.QueryRow("SELECT unixepoch(date) FROM posts WHERE src = ? ORDER BY date DESC;", src)
+func (h *BaseHandler) ReadLastRunTime(dur *time.Duration) (*time.Time, error) {
+	row := h.DB.QueryRow("SELECT unixepoch(date) FROM posts WHERE src = ? ORDER BY date DESC;", h.SiteConfig.Id)
 	if row.Err() != nil {
 		t := time.Now().Add(*dur)
 		return &t, row.Err()

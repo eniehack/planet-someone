@@ -13,7 +13,7 @@ type ScrapboxHandler struct {
 }
 
 func (h *ScrapboxHandler) Pick() error {
-	lastRun, err := h.ReadLastRunTime(h.SiteConfig.Id, &DEFAULT_DURATION)
+	lastRun, err := h.ReadLastRunTime(&DEFAULT_DURATION)
 	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
