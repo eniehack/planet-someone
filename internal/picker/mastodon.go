@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/antchfx/htmlquery"
+	"github.com/eniehack/planet-someone/internal/config"
 )
 
 type MastodonUserStatusAPIResponse struct {
@@ -82,6 +83,7 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", config.UserAgent)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error access Misskey API: %s", err)

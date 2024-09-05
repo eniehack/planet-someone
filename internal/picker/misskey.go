@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/eniehack/planet-someone/internal/config"
 )
 
 type MisskeyHandler struct {
@@ -86,6 +88,7 @@ func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun *time.Time) (*[]MisskeyA
 		return nil, fmt.Errorf("error access Misskey API: %s", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", config.UserAgent)
 	client := new(http.Client)
 	resp, err := client.Do(req)
 	if err != nil {
