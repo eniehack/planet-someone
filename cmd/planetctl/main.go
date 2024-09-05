@@ -20,8 +20,7 @@ import (
 )
 
 const (
-	SQLITE    = "sqlite"
-	UserAgent = "Mozilla/5.0 (compatible; planet-eniehack; +https://github.com/eniehack/planet-someone)"
+	SQLITE = "sqlite"
 )
 
 func resolveAbsUrl(baseUrl *url.URL, path string) (*url.URL, error) {
@@ -85,7 +84,7 @@ func main() {
 								if err != nil {
 									return err
 								}
-								req.Header.Set("User-Agent", UserAgent)
+								req.Header.Set("User-Agent", config.UserAgent)
 								resp, err := client.Do(req)
 								if err != nil {
 									return err

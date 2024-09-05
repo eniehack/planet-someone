@@ -8,6 +8,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	UserAgent = "Mozilla/5.0 (compatible; planet-eniehack; +https://github.com/eniehack/planet-someone)"
+)
+
 func New(f io.Reader) (*Config, error) {
 	config := new(Config)
 	if err := yaml.NewDecoder(f).Decode(config); err != nil {
