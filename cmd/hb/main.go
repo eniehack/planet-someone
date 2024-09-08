@@ -73,7 +73,7 @@ func main() {
 		res, err := db.Query(
 			`SELECT id, title, url, created_at, src
 			 FROM posts
-			 WHERE date(created_at, "unixepoch") = ?
+			 WHERE date(created_at, "unixepoch", "localtime") = ?
 			 ORDER BY created_at DESC;`,
 			dateStr,
 		)
