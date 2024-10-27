@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"os"
 	"path"
 	"sort"
@@ -46,15 +46,19 @@ func main() {
 	var configFilePath string
 	flag.StringVar(&configFilePath, "config", "./config.yml", "config file")
 	flag.Parse()
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	slog.SetDefault(logger)
 	c := config.ReadConfig(configFilePath)
 	db, err := sqlx.Connect("sqlite", fmt.Sprintf("file:%s", c.DB.DB))
 	if err != nil {
-		log.Fatalln("cannot open db:", err)
+		slog.Error(fmt.Sprintf("cannot open db: %s", err))
+		os.Exit(1)
 	}
 	defer db.Close()
 	tmpl, err := template.ParseFiles(path.Join(c.Hb.TemplateDir, "/index.html"))
 	if err != nil {
-		log.Fatalln("cannot parse template:", err)
+		slog.Error(fmt.Sprintf("cannot parse template: %s", err))
+		os.Exit(1)
 	}
 	hbConfig := new(Config)
 	hbConfig.Meta = Meta{
@@ -65,7 +69,8 @@ func main() {
 	posts := make(map[string][]Post)
 	tz, err := time.LoadLocation(c.Hb.TimeZone)
 	if err != nil {
-		log.Fatalln("cannot parse timezone:", err)
+		slog.Error(fmt.Sprintf("cannot parse timezone: %s", err))
+		os.Exit(1)
 	}
 	today := time.Now().In(tz)
 	for i := today; today.Sub(i).Abs().Hours() <= (time.Hour * 24 * 14).Hours(); i = i.Add(time.Hour * -24) {
@@ -78,7 +83,8 @@ func main() {
 			dateStr,
 		)
 		if err != nil {
-			log.Fatalln(err)
+			slog.Error(fmt.Sprintf("cannot exec query: %s", err))
+			os.Exit(1)
 		}
 		for res.Next() {
 			post := Post{}
@@ -89,7 +95,8 @@ func main() {
 				&post.Date,
 				&post.Src,
 			); err != nil {
-				log.Fatalln(err)
+				slog.Error(fmt.Sprintf("cannot bind variable from query: %s", err))
+				os.Exit(1)
 			}
 			tzAppliedDate := time.Unix(post.Date, 0).In(tz)
 			post.ParsedDate = &tzAppliedDate
@@ -117,6 +124,6 @@ func main() {
 		"Config": hbConfig,
 	}
 	if err := tmpl.Execute(os.Stdout, data); err != nil {
-		log.Fatalln(err)
+		slog.Error(fmt.Sprintf("failed to execute template: %s", err))
 	}
 }
