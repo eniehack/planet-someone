@@ -152,6 +152,33 @@ func main() {
 							return nil
 						},
 					},
+					{
+						Name:      "remove",
+						ArgsUsage: "[id]",
+						Usage:     "remove posts taken from specific source from db.",
+						Aliases:   []string{"rm"},
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "config",
+								Aliases: []string{"c"},
+							},
+						},
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							if cmd.Args().Len() != 1 {
+								return errors.New("must be 1 argument")
+							}
+							c := config.ReadConfig(cmd.String("config"))
+							db, err := sqlx.Connect(SQLITE, fmt.Sprintf("file:%s", c.DB.DB))
+							if err != nil {
+								return fmt.Errorf("cannot connect to sqlite file: %s", err)
+							}
+							defer db.Close()
+							if _, err := db.ExecContext(ctx, "DELETE FROM posts WHERE src = ?;", cmd.Args().First()); err != nil {
+								return fmt.Errorf("cannot delete posts: %s", err)
+							}
+							return nil
+						},
+					},
 				},
 			},
 			{
