@@ -52,12 +52,6 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 
 func main() {
 	cmd := &cli.Command{
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "config",
-				Aliases: []string{"c"},
-			},
-		},
 		Commands: []*cli.Command{
 			{
 				Name: "site",
@@ -65,6 +59,12 @@ func main() {
 					{
 						Name:  "validate",
 						Usage: "validate config file",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "config",
+								Aliases: []string{"c"},
+							},
+						},
 						Action: func(ctx context.Context, cmd *cli.Command) error {
 							c := config.ReadConfig(cmd.String("config"))
 							newSites := []config.SiteConfig{}
@@ -133,6 +133,13 @@ func main() {
 					{
 						Name:      "add",
 						ArgsUsage: "[id]",
+						Usage:     "add source data to db",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "config",
+								Aliases: []string{"c"},
+							},
+						},
 						Action: func(ctx context.Context, cmd *cli.Command) error {
 							if cmd.Args().Len() != 1 {
 								return errors.New("must be 1 argument")
@@ -184,6 +191,12 @@ func main() {
 			{
 				Name:   "init",
 				Action: initAction,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "config",
+						Aliases: []string{"c"},
+					},
+				},
 			},
 		},
 	}
