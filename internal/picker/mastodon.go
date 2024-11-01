@@ -58,13 +58,14 @@ func (h *MastodonHandler) Pick() error {
 }
 
 func buildContent(rawContent string) string {
-	contentDoc, err := htmlquery.Parse(strings.NewReader(rawContent))
+	brReplacedContent := strings.ReplaceAll(rawContent, "<br />", "\n")
+	contentDoc, err := htmlquery.Parse(strings.NewReader(brReplacedContent))
 	if err != nil {
 		log.Println("cannot parse html:", err)
 	}
 	content := new(strings.Builder)
 	for _, elem := range htmlquery.Find(contentDoc, "//text()") {
-		content.WriteString(htmlquery.InnerText(elem))
+		content.WriteString(htmlquery.InnerText(elem) + " ")
 	}
 	return content.String()
 }
