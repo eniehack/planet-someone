@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/eniehack/planet-someone/internal/config"
 	"github.com/mmcdole/gofeed"
 )
 
 type ScrapboxHandler struct {
 	BaseHandler
+	Config *config.ScrapboxConfig
 }
 
 func (h *ScrapboxHandler) Pick() error {
@@ -16,7 +18,7 @@ func (h *ScrapboxHandler) Pick() error {
 	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
-	feed, err := gofeed.NewParser().ParseURL(h.SiteConfig.SourceUrl)
+	feed, err := gofeed.NewParser().ParseURL(h.Config.SourceUrl)
 	if err != nil {
 		return fmt.Errorf("error parsing rss feed: %s", err)
 	}
@@ -28,7 +30,7 @@ func (h *ScrapboxHandler) Pick() error {
 	for _, item := range feed.Items {
 		if lastRun.Unix() < item.PublishedParsed.Unix() {
 			id := BuildID(item.PublishedParsed)
-			if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Unix()); err != nil {
+			if _, err := stmt.Exec(id, item.Title, item.Link, h.Config.Id, item.PublishedParsed.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 			}
 		}

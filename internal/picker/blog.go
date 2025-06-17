@@ -5,11 +5,13 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/eniehack/planet-someone/internal/config"
 	"github.com/mmcdole/gofeed"
 )
 
 type BlogHandler struct {
 	BaseHandler
+	Config *config.BlogConfig
 }
 
 func (h *BlogHandler) Pick() error {
@@ -17,7 +19,7 @@ func (h *BlogHandler) Pick() error {
 	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
-	feed, err := gofeed.NewParser().ParseURL(h.SiteConfig.SourceUrl)
+	feed, err := gofeed.NewParser().ParseURL(h.Config.SourceUrl)
 	if err != nil {
 		return fmt.Errorf("error parsing rss feed: %s", err)
 	}
@@ -30,7 +32,7 @@ func (h *BlogHandler) Pick() error {
 		fmt.Printf("lastrun: %s, published: %s\n", lastRun.Format(time.RFC3339), item.PublishedParsed.Format(time.RFC3339))
 		if lastRun.Unix() < item.PublishedParsed.Unix() {
 			id := BuildID(item.PublishedParsed)
-			if _, err := stmt.Exec(id, item.Title, item.Link, h.SiteConfig.Id, item.PublishedParsed.Unix()); err != nil {
+			if _, err := stmt.Exec(id, item.Title, item.Link, h.Config.Id, item.PublishedParsed.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 			}
 		}

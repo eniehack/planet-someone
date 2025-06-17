@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/eniehack/planet-someone/internal/config"
-	"github.com/eniehack/planet-someone/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/oklog/ulid/v2"
 )
@@ -22,30 +21,30 @@ type Source struct {
 	Type      int    `db:"type"`
 }
 
-func PickerFactory(db *sqlx.DB, src *config.SiteConfig) (FeedPicker, error) {
-	switch src.Type {
-	case model.TYPE_MASTODON:
+func PickerFactory(db *sqlx.DB, src config.SiteConfig) (FeedPicker, error) {
+	switch config := src.(type) {
+	case *config.MastodonConfig:
 		h := new(MastodonHandler)
 		h.DB = db
-		h.SiteConfig = src
+		h.Config = config
 		return h, nil
-	case model.TYPE_MISSKEY:
-		h := new(MisskeyHandler)
-		h.DB = db
-		h.SiteConfig = src
-		return h, nil
-	case model.TYPE_SCRAPBOX:
+	case *config.ScrapboxConfig:
 		h := new(ScrapboxHandler)
 		h.DB = db
-		h.SiteConfig = src
+		h.Config = config
 		return h, nil
-	case model.TYPE_BLOG:
+	case *config.BlogConfig:
 		h := new(BlogHandler)
 		h.DB = db
-		h.SiteConfig = src
+		h.Config = config
+		return h, nil
+	case *config.MisskeyConfig:
+		h := new(MisskeyHandler)
+		h.DB = db
+		h.Config = config
 		return h, nil
 	default:
-		return nil, fmt.Errorf("unsupported type site: %s", src.Id)
+		return nil, fmt.Errorf("unsupported type site: %s", config.GetType())
 	}
 }
 

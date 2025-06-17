@@ -16,6 +16,7 @@ import (
 
 type MisskeyHandler struct {
 	BaseHandler
+	Config *config.MisskeyConfig
 }
 
 type MisskeyAPIRequestPayload struct {
@@ -38,7 +39,7 @@ func (h *MisskeyHandler) Pick() error {
 	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
-	reqUrl, err := url.Parse(h.SiteConfig.SiteUrl)
+	reqUrl, err := url.Parse(h.Config.InstanceUrl)
 	if err != nil {
 		return fmt.Errorf("cannot parse url: %s", err)
 	}
@@ -61,7 +62,7 @@ func (h *MisskeyHandler) Pick() error {
 		if lastRun.Unix() < published.Unix() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
-			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Unix()); err != nil {
+			if _, err := stmt.Exec(id, item.Text, link, h.Config.Id, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", link, err)
 			}
 		}
@@ -71,7 +72,7 @@ func (h *MisskeyHandler) Pick() error {
 
 func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun *time.Time) (*[]MisskeyAPIResponsePayload, error) {
 	reqPayload := &MisskeyAPIRequestPayload{
-		UserId:       h.SiteConfig.SourceUrl,
+		UserId:       h.Config.UserId,
 		WithReplies:  false,
 		WithRenotes:  false,
 		UntilDate:    lastRun.UnixMilli(),

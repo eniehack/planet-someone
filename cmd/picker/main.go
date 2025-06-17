@@ -27,7 +27,7 @@ func main() {
 	}
 	defer db.Close()
 	for _, src := range c.Picker.Sites {
-		p, err := picker.PickerFactory(db, &src)
+		p, err := picker.PickerFactory(db, src.SiteConfig)
 		if err != nil {
 			slog.Error(fmt.Sprintf("cannot create picker on pickerfactory: %s", err))
 			os.Exit(1)

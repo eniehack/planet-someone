@@ -1,10 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
 
+	"github.com/eniehack/planet-someone/internal/model"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,6 +35,56 @@ func ReadConfig(configFilePath string) *Config {
 	return c
 }
 
+func NewSiteConfig(typ string) (SiteConfig, error) {
+	var c SiteConfig
+	switch typ {
+	case model.TYPE_MASTODON:
+		c = new(MastodonConfig)
+	case model.TYPE_MISSKEY:
+		c = new(MisskeyConfig)
+	case model.TYPE_SCRAPBOX:
+		c = new(ScrapboxConfig)
+	case model.TYPE_BLOG:
+		c = new(BlogConfig)
+	default:
+		return nil, fmt.Errorf("unknown type: %s", typ)
+	}
+	return c, nil
+}
+
+func (sw *SiteConfigWrapper) UnmarshalYAML(value *yaml.Node) error {
+	type rawWrapper struct {
+		Type string `yaml:"type"`
+	}
+	var raw rawWrapper
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+	sw.Type = raw.Type
+
+	// 型に応じて具体的な構造体を割り当てる
+	var cfg SiteConfig
+	switch raw.Type {
+	case model.TYPE_MASTODON:
+		cfg = new(MastodonConfig)
+	case model.TYPE_MISSKEY:
+		cfg = new(MisskeyConfig)
+	case model.TYPE_SCRAPBOX:
+		cfg = new(ScrapboxConfig)
+	case model.TYPE_BLOG:
+		cfg = new(BlogConfig)
+	default:
+		return fmt.Errorf("unknown type: %s", raw.Type)
+	}
+
+	// 構造体にデコード
+	if err := value.Decode(cfg); err != nil {
+		return err
+	}
+	sw.SiteConfig = cfg
+	return nil
+}
+
 type Config struct {
 	DB     DbConfig     `yaml:"db"`
 	Picker PickerConfig `yaml:"picker"`
@@ -52,16 +104,17 @@ type DbConfig struct {
 }
 
 type PickerConfig struct {
-	Sites []SiteConfig `yaml:"sites"`
+	Sites []SiteConfigWrapper `yaml:"sites"`
 }
 
-type SiteConfig struct {
-	Id        string `yaml:"id"`
-	SourceUrl string `yaml:"source_url"`
-	SiteUrl   string `yaml:"site_url"`
-	Name      string `yaml:"name"`
-	Type      string `yaml:"type"`
-	IconUrl   string `yaml:"icon_url"`
+type SiteConfig interface {
+	GetType() string
+}
+
+type SiteConfigWrapper struct {
+	Type       string                 `yaml:"type"`
+	SiteConfig SiteConfig             `yaml:"-"`
+	RawConfig  map[string]interface{} `yaml:",inline"`
 }
 
 type OgpConfig struct {

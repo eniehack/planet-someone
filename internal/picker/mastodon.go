@@ -24,6 +24,7 @@ type MastodonUserStatusAPIResponse struct {
 
 type MastodonHandler struct {
 	BaseHandler
+	Config *config.MastodonConfig
 }
 
 func (h *MastodonHandler) Pick() error {
@@ -49,7 +50,7 @@ func (h *MastodonHandler) Pick() error {
 		if lastRun.Unix() < published.Unix() && !item.Sensitive {
 			id := BuildID(&published)
 			content := buildContent(item.Content)
-			if _, err := stmt.Exec(id, content, item.Url, h.SiteConfig.Id, published.Unix()); err != nil {
+			if _, err := stmt.Exec(id, content, item.Url, h.Config.Id, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
 			}
 		}
