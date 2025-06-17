@@ -1,6 +1,7 @@
 package picker
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,11 +16,12 @@ import (
 )
 
 type MastodonUserStatusAPIResponse struct {
-	Id        string `json:"id"`
-	Sensitive bool   `json:"sensitive"`
-	CreatedAt string `json:"created_at"`
-	Url       string `json:"url"`
-	Content   string `json:"content"`
+	Id        string                         `json:"id"`
+	Sensitive bool                           `json:"sensitive"`
+	CreatedAt string                         `json:"created_at"`
+	Url       string                         `json:"url"`
+	Content   string                         `json:"content"`
+	Reblog    *MastodonUserStatusAPIResponse `json:"reblog,omitempty"`
 }
 
 type MastodonHandler struct {
@@ -72,13 +74,13 @@ func buildContent(rawContent string) string {
 }
 
 func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
-	reqUrl, err := url.Parse(h.SiteConfig.SourceUrl)
+	reqUrl, err := url.Parse(h.Config.SourceUrl)
 	if err != nil {
 		return nil, err
 	}
 	query := make(url.Values)
 	query.Add("exclude_replies", "true")
-	query.Add("exclude_reblogs", "true")
+	//query.Add("exclude_reblogs", "true")
 	reqUrl.RawQuery = query.Encode()
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet, reqUrl.String(), nil)
@@ -97,4 +99,19 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 		return nil, err
 	}
 	return &respPayload, nil
+}
+
+func (h *MastodonHandler) ReadLastRunTime(dur *time.Duration) (*time.Time, error) {
+	row := h.DB.QueryRow("SELECT created_at FROM posts WHERE src = ? ORDER BY created_at DESC;", h.Config.Id)
+	if row.Err() != nil {
+		if row.Err() == sql.ErrNoRows {
+			t := time.Now().Add(*dur)
+			return &t, row.Err()
+		}
+		return nil, row.Err()
+	}
+	var timestamp_unit int64
+	row.Scan(&timestamp_unit)
+	timestamp := time.Unix(timestamp_unit, 0)
+	return &timestamp, nil
 }

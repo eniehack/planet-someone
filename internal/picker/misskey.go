@@ -2,6 +2,7 @@ package picker
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -111,4 +112,19 @@ func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun *time.Time) (*[]MisskeyA
 		return nil, err
 	}
 	return &respPayload, nil
+}
+
+func (h *MisskeyHandler) ReadLastRunTime(dur *time.Duration) (*time.Time, error) {
+	row := h.DB.QueryRow("SELECT created_at FROM posts WHERE src = ? ORDER BY created_at DESC;", h.Config.Id)
+	if row.Err() != nil {
+		if row.Err() == sql.ErrNoRows {
+			t := time.Now().Add(*dur)
+			return &t, row.Err()
+		}
+		return nil, row.Err()
+	}
+	var timestamp_unit int64
+	row.Scan(&timestamp_unit)
+	timestamp := time.Unix(timestamp_unit, 0)
+	return &timestamp, nil
 }
