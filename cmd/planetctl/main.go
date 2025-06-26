@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/eniehack/planet-someone/internal/config"
+	"github.com/eniehack/planet-someone/internal/model"
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/urfave/cli/v3"
@@ -73,9 +74,39 @@ func addSite(ctx context.Context, cmd *cli.Command) error {
 		return errors.New("must be 1 argument")
 	}
 	c := config.ReadConfig(cmd.String("config"))
-	c.Picker.Sites = append(c.Picker.Sites, config.SiteConfig{
-		Id: cmd.Args().First(),
-	})
+	var scw *config.SiteConfigWrapper
+	switch cmd.String("type") {
+	case model.TYPE_MASTODON:
+		scw = &config.SiteConfigWrapper{
+			Type:      cmd.String("type"),
+			Id:        cmd.Args().First(),
+			RawParams: &config.MastodonConfig{},
+		}
+	case model.TYPE_MISSKEY:
+		scw = &config.SiteConfigWrapper{
+			Type:      cmd.String("type"),
+			Id:        cmd.Args().First(),
+			RawParams: &config.MisskeyConfig{},
+		}
+	case model.TYPE_SCRAPBOX:
+		scw = &config.SiteConfigWrapper{
+			Type:      cmd.String("type"),
+			Id:        cmd.Args().First(),
+			RawParams: &config.ScrapboxConfig{},
+		}
+	case model.TYPE_BLOG:
+		scw = &config.SiteConfigWrapper{
+			Type:      cmd.String("type"),
+			Id:        cmd.Args().First(),
+			RawParams: &config.BlogConfig{},
+		}
+	default:
+		return errors.New("unexpected site type")
+	}
+	c.Picker.Sites = append(c.Picker.Sites, *scw)
+	fmt.Printf("SiteConfigWrapper: %+v\n", scw)
+	fmt.Printf("SiteConfigWrapper Type: %T\n", scw.RawParams)
+
 	f, err := os.OpenFile(cmd.String("config"), os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
@@ -128,6 +159,11 @@ func main() {
 							&cli.StringFlag{
 								Name:    "config",
 								Aliases: []string{"c"},
+							},
+							&cli.StringFlag{
+								Name:     "type",
+								Aliases:  []string{"t"},
+								Required: true,
 							},
 						},
 						Action: addSite,
