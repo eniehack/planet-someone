@@ -16,9 +16,9 @@ type MisskeyConfig struct {
 	Type        string
 	InstanceUrl string `yaml:"instance_url"`
 	UserId      string `yaml:"user_id"`
-	SiteUrl     string `yaml:"site_url,omitempty"`
-	Name        string `yaml:"name,omitempty"`
-	IconUrl     string `yaml:"icon_url,omitempty"`
+	SiteUrl     string `yaml:"site_url"`
+	Name        string `yaml:"name"`
+	IconUrl     string `yaml:"icon_url"`
 }
 
 func (c *MisskeyConfig) SetId(id string) {

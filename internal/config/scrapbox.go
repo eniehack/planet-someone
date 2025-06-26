@@ -13,10 +13,10 @@ import (
 type ScrapboxConfig struct {
 	Id        string `yaml:"-"`
 	Type      string `yaml:"-"`
-	SourceUrl string `yaml:"source_url,omitempty"`
+	SourceUrl string `yaml:"source_url"`
 	SiteUrl   string `yaml:"site_url"`
-	Name      string `yaml:"name,omitempty"`
-	IconUrl   string `yaml:"icon_url,omitempty"`
+	Name      string `yaml:"name"`
+	IconUrl   string `yaml:"icon_url"`
 }
 
 func (c *ScrapboxConfig) SetId(id string) {

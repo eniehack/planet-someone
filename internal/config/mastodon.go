@@ -15,8 +15,8 @@ type MastodonConfig struct {
 	Type      string
 	SourceUrl string `yaml:"source_url"`
 	SiteUrl   string `yaml:"site_url"`
-	Name      string `yaml:"name,omitempty"`
-	IconUrl   string `yaml:"icon_url,omitempty"`
+	Name      string `yaml:"name"`
+	IconUrl   string `yaml:"icon_url"`
 }
 
 func (c *MastodonConfig) SetId(id string) {
