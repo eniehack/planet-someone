@@ -5,12 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
-	"net/url"
 	"os"
 	"time"
 
-	"github.com/antchfx/htmlquery"
 	"github.com/eniehack/planet-someone/internal/config"
 	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
@@ -22,15 +19,6 @@ import (
 const (
 	SQLITE = "sqlite"
 )
-
-func resolveAbsUrl(baseUrl *url.URL, path string) (*url.URL, error) {
-	relUrl, err := url.Parse(path)
-	if err != nil {
-		return nil, err
-	}
-	abs := baseUrl.ResolveReference(relUrl)
-	return abs, nil
-}
 
 func initAction(ctx context.Context, cmd *cli.Command) error {
 	c := config.ReadConfig(cmd.String("config"))
@@ -52,52 +40,17 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 
 func validateConfig(ctx context.Context, cmd *cli.Command) error {
 	c := config.ReadConfig(cmd.String("config"))
-	newSites := []config.SiteConfig{}
+	newSites := []config.SiteConfigWrapper{}
 	for _, siteConfig := range c.Picker.Sites {
 		if len(siteConfig.Id) == 0 {
 			return errors.New("id is required")
 		}
-		if len(siteConfig.SiteUrl) == 0 {
-			return fmt.Errorf("%s: site_url is undefined", siteConfig.Id)
-		}
-		client := new(http.Client)
-		reqUrl, err := url.Parse(siteConfig.SiteUrl)
+		params, err := config.GetParam(siteConfig)
 		if err != nil {
 			return err
 		}
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl.String(), nil)
-		if err != nil {
+		if err := params.CompleteMetadata(ctx, siteConfig.Id); err != nil {
 			return err
-		}
-		req.Header.Set("User-Agent", config.UserAgent)
-		resp, err := client.Do(req)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		doc, err := htmlquery.Parse(resp.Body)
-		if err != nil {
-			return err
-		}
-		if len(siteConfig.Name) == 0 {
-			titleElem := htmlquery.FindOne(doc, `//title/text()`)
-			siteConfig.Name = htmlquery.InnerText(titleElem)
-		}
-		if len(siteConfig.SourceUrl) == 0 {
-			feedUrlElem := htmlquery.FindOne(doc, `//link[@rel="alternate" and (@type="application/rss+xml" or @type="application/atom+xml")]/@href`)
-			srcUrl, err := resolveAbsUrl(reqUrl, htmlquery.InnerText(feedUrlElem))
-			if err != nil {
-				return err
-			}
-			siteConfig.SourceUrl = srcUrl.String()
-		}
-		if len(siteConfig.IconUrl) == 0 {
-			iconUrlElem := htmlquery.FindOne(doc, `//link[@rel="icon"]/@href`)
-			iconUrl, err := resolveAbsUrl(reqUrl, htmlquery.InnerText(iconUrlElem))
-			if err != nil {
-				return err
-			}
-			siteConfig.IconUrl = iconUrl.String()
 		}
 		time.Sleep(time.Second * 1)
 		newSites = append(newSites, siteConfig)
