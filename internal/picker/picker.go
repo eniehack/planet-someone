@@ -34,6 +34,8 @@ func PickerFactory(db *sqlx.DB, src config.SiteConfigWrapper) (FeedPicker, error
 		if !ok {
 			return nil, ErrCannotCastConfigStruct
 		}
+		config.Id = src.Id
+		config.Type = src.Type
 		h.Config = config
 		return h, nil
 	case model.TYPE_SCRAPBOX:
@@ -43,6 +45,8 @@ func PickerFactory(db *sqlx.DB, src config.SiteConfigWrapper) (FeedPicker, error
 		if !ok {
 			return nil, ErrCannotCastConfigStruct
 		}
+		config.Id = src.Id
+		config.Type = src.Type
 		h.Config = config
 		return h, nil
 	case model.TYPE_BLOG:
@@ -52,6 +56,8 @@ func PickerFactory(db *sqlx.DB, src config.SiteConfigWrapper) (FeedPicker, error
 		if !ok {
 			return nil, ErrCannotCastConfigStruct
 		}
+		config.Id = src.Id
+		config.Type = src.Type
 		h.Config = config
 		return h, nil
 	case model.TYPE_MISSKEY:
@@ -61,6 +67,8 @@ func PickerFactory(db *sqlx.DB, src config.SiteConfigWrapper) (FeedPicker, error
 		if !ok {
 			return nil, ErrCannotCastConfigStruct
 		}
+		config.Id = src.Id
+		config.Type = src.Type
 		h.Config = config
 		return h, nil
 	default:
