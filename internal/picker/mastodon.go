@@ -16,12 +16,18 @@ import (
 	"golang.org/x/net/html"
 )
 
+type MastodonAccountAPIResponse struct {
+	Indexable bool   `json:"indexable"`
+	Acct      string `json:"acct"`
+}
+
 type MastodonUserStatusAPIResponse struct {
 	Id        string                         `json:"id"`
 	Sensitive bool                           `json:"sensitive"`
 	CreatedAt string                         `json:"created_at"`
 	Url       string                         `json:"url"`
 	Content   string                         `json:"content"`
+	Account   *MastodonAccountAPIResponse    `json:"account"`
 	Reblog    *MastodonUserStatusAPIResponse `json:"reblog,omitempty"`
 }
 
@@ -59,15 +65,18 @@ func (h *MastodonHandler) Pick() error {
 					return err
 				}
 				content = buildContent(node, true)
+				if _, err := stmt.Exec(id, content, item.Url, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
+					return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
+				}
 			} else {
 				node, err := html.Parse(strings.NewReader(item.Reblog.Content))
 				if err != nil {
 					return err
 				}
-				content = fmt.Sprintf("BT: %s", buildContent(node, true))
-			}
-			if _, err := stmt.Exec(id, content, item.Url, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
-				return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
+				content = fmt.Sprintf("BT %s: %s", item.Account.Acct, buildContent(node, true))
+				if _, err := stmt.Exec(id, content, item.Reblog.Url, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
+					return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
+				}
 			}
 		}
 	}
