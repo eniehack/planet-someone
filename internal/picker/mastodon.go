@@ -73,7 +73,7 @@ func (h *MastodonHandler) Pick() error {
 				if err != nil {
 					return err
 				}
-				content = fmt.Sprintf("BT %s: %s", item.Account.Acct, buildContent(node, true))
+				content = fmt.Sprintf("BT %s: %s", item.Reblog.Account.Acct, buildContent(node, true))
 				if _, err := stmt.Exec(id, content, item.Reblog.Url, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
 					return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
 				}
