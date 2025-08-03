@@ -76,7 +76,7 @@ func main() {
 	for i := today; today.Sub(i).Abs().Hours() <= (time.Hour * 24 * 14).Hours(); i = i.Add(time.Hour * -24) {
 		dateStr := i.Format("2006-01-02")
 		res, err := db.Query(
-			`SELECT id, title, url, created_at, src
+			`SELECT id, content, url, created_at, src
 			 FROM posts
 			 WHERE date(created_at, "unixepoch", "localtime") = ?
 			 ORDER BY created_at DESC;`,
