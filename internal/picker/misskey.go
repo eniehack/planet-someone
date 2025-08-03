@@ -2,6 +2,7 @@ package picker
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 
 type MisskeyHandler struct {
 	BaseHandler
+	Config *config.MisskeyConfig
 }
 
 type MisskeyAPIRequestPayload struct {
@@ -38,7 +40,7 @@ func (h *MisskeyHandler) Pick() error {
 	if err != nil {
 		slog.Info(fmt.Sprintf("Error reading last run time: %s", err))
 	}
-	reqUrl, err := url.Parse(h.SiteConfig.SiteUrl)
+	reqUrl, err := url.Parse(h.Config.InstanceUrl)
 	if err != nil {
 		return fmt.Errorf("cannot parse url: %s", err)
 	}
@@ -47,7 +49,7 @@ func (h *MisskeyHandler) Pick() error {
 	if err != nil {
 		return fmt.Errorf("cannot fetch misskey posts: %s", err)
 	}
-	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, created_at) VALUES (?, ?, ?, ?, ?);")
+	stmt, err := h.DB.Prepare("INSERT INTO posts (id, content, url, src, type, created_at) VALUES (?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("cannot make prepare statement: %s", err)
 	}
@@ -61,7 +63,7 @@ func (h *MisskeyHandler) Pick() error {
 		if lastRun.Unix() < published.Unix() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
-			if _, err := stmt.Exec(id, item.Text, link, h.SiteConfig.Id, published.Unix()); err != nil {
+			if _, err := stmt.Exec(id, item.Text, link, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", link, err)
 			}
 		}
@@ -71,7 +73,7 @@ func (h *MisskeyHandler) Pick() error {
 
 func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun *time.Time) (*[]MisskeyAPIResponsePayload, error) {
 	reqPayload := &MisskeyAPIRequestPayload{
-		UserId:       h.SiteConfig.SourceUrl,
+		UserId:       h.Config.UserId,
 		WithReplies:  false,
 		WithRenotes:  false,
 		UntilDate:    lastRun.UnixMilli(),
@@ -110,4 +112,19 @@ func (h *MisskeyHandler) Fetch(reqUrl *url.URL, lastRun *time.Time) (*[]MisskeyA
 		return nil, err
 	}
 	return &respPayload, nil
+}
+
+func (h *MisskeyHandler) ReadLastRunTime(dur *time.Duration) (*time.Time, error) {
+	row := h.DB.QueryRow("SELECT created_at FROM posts WHERE src = ? ORDER BY created_at DESC;", h.Config.Id)
+	if row.Err() != nil {
+		if row.Err() == sql.ErrNoRows {
+			t := time.Now().Add(*dur)
+			return &t, row.Err()
+		}
+		return nil, row.Err()
+	}
+	var timestamp_unit int64
+	row.Scan(&timestamp_unit)
+	timestamp := time.Unix(timestamp_unit, 0)
+	return &timestamp, nil
 }

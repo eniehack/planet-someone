@@ -13,58 +13,70 @@
 	<meta name="twitter:description" content="{{- .Config.Meta.Description -}}" />
 	<meta name="twitter:creators" content="@eniehack" />
 	<meta name="twitter:card" content="summary" />
-    <style>
-        .post > p {
-            display: inline;
-        }
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
         .post {
-            margin-left: -16px;
+            @apply px-[7px] py-[10px] list-none flex flex-row gap-2 align-middle
         }
-        {{ range $k, $v := .Sites -}}
-            li.site-{{ $k }} {
-                list-style: none;
-                padding: 10px 30px;
-                background-image: url({{$v.IconUrl}});
-                background-repeat: no-repeat;
-                background-position: left center;
-                background-size: 16px;
-            }
-        {{ end -}}
+        p {
+            @apply my-[16px]
+        }
+        .section__title {
+            @apply font-semibold text-xl pt-[20px]
+        }
+        a {
+            @apply text-blue-600
+        }
     </style>
 </head>
 <body>
-   <main>
-    <article>
-        <h1>planet eniehack</h1>
-        <p>
-            <a href="https://planet.debian.org/">Planet Debian</a>、<a href="https://planet.osm.org/">Planet OSM</a>や<a href="https://kanzaki.com/info/planet">Planet masaka</a>のように、僕個人の最新情報を1つのページにまとめたものです。
-        </p>
-        <p>
-            データソースは以下の通りです:
-            <ul>
-                {{ range $k, $v := .Sites}}
-                    <li><a href="{{- $v.Url -}}"><img src="{{- $v.IconUrl -}}" width="16" height="16"/>{{$v.Title}}</a></li>
-                {{ end }}
-            </ul>
-        </p>
-        {{ range $i, $k := .Keys -}}
-        <section id="{{$k}}">
-            <h2><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
-            <ul>
-            {{ range $j, $post := (index $.Posts $k) -}}
-                <li class="post site-{{ $post.Src -}}" id="{{- $post.Id -}}">
-                    <p>
-                        {{- $post.Content -}}
-                    </p>
-                    (<a href="{{- $post.Url -}}"><time datetime="{{- $post.ParsedDate.Format "2006-01-02T15:04:05Z07:00"  -}}">{{- $post.ParsedDate.Format "15:04" -}}</time></a>)
-                </li>
-            {{ end -}}
-            </ul>
-        </section>
-        {{ end -}}
-    </article>
-   </main> 
-   <footer>
-        <a href="https://github.com/eniehack/planet-someone">ソースコード（GitHub）</a>
-   </footer>
+    <div class="@container">
+        <main class="pl-4 pr-8 mx-auto w-[calc(100% - 20px)] @xl:max-w-[540px] @3xl:max-w-[720px] @5xl:max-w-[960px] @7xl:max-w-[1140px]">
+            <article>
+                <h1 class="text-5xl font-black my-[21px] py-10">planet eniehack</h1>
+                <p>
+                    <a href="https://planet.debian.org/">Planet Debian</a>や<a href="https://kanzaki.com/info/planet">Planet masaka</a>のように、僕個人の最新情報を1つのページにまとめたものです。
+                </p>
+                <p>
+                    データソースは以下の通りです:
+                    <ul>
+                        {{ range $k, $v := .Sites}}
+                            <li class="align-middle">
+                                <img class="inline" src="{{- $v.IconUrl -}}" width="16" height="16"/>
+                                <a class="" href="{{- $v.Url -}}">
+                                    {{$v.Title}}
+                                </a>
+                            </li>
+                        {{ end }}
+                    </ul>
+                </p>
+                {{ range $i, $k := .Keys -}}
+                <section id="{{$k}}">
+                    <h2 class="section__title"><time datetime="{{- $k -}}">{{- $k -}}</time></h2>
+                    <ul>
+                    {{ range $j, $post := (index $.Posts $k) -}}
+                        {{ $site := index $.Sites $post.Src }}
+                        <li class="post" id="{{- $post.Id -}}">
+                            <div>
+                                <div class="size-6">
+                                    <img src="{{- $site.IconUrl -}}" />
+                                </div>
+                            </div>
+                            <div>
+                                <p class="inline">
+                                    {{- $post.Content -}}
+                                </p>
+                                (<a rel="nofollow" href="{{- $post.Url -}}"><time datetime="{{- $post.ParsedDate.Format "2006-01-02T15:04:05Z07:00"  -}}">{{- $post.ParsedDate.Format "15:04" -}}</time></a>)
+                            </div>
+                        </li>
+                    {{ end -}}
+                    </ul>
+                </section>
+                {{ end -}}
+            </article>
+        </main> 
+        <footer class="mx-auto pl-4 pr-8">
+             <p><a href="https://github.com/eniehack/planet-someone">planet-someone</a>(revision: {{ $.Meta.Version }})</p>
+        </footer>
+    </div>
 </body>

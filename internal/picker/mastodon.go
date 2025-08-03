@@ -1,29 +1,39 @@
 package picker
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
-	"github.com/antchfx/htmlquery"
 	"github.com/eniehack/planet-someone/internal/config"
+	"golang.org/x/net/html"
 )
 
+type MastodonAccountAPIResponse struct {
+	Indexable bool   `json:"indexable"`
+	Acct      string `json:"acct"`
+}
+
 type MastodonUserStatusAPIResponse struct {
-	Id        string `json:"id"`
-	Sensitive bool   `json:"sensitive"`
-	CreatedAt string `json:"created_at"`
-	Url       string `json:"url"`
-	Content   string `json:"content"`
+	Id        string                         `json:"id"`
+	Sensitive bool                           `json:"sensitive"`
+	CreatedAt string                         `json:"created_at"`
+	Url       string                         `json:"url"`
+	Content   string                         `json:"content"`
+	Account   *MastodonAccountAPIResponse    `json:"account"`
+	Reblog    *MastodonUserStatusAPIResponse `json:"reblog,omitempty"`
 }
 
 type MastodonHandler struct {
 	BaseHandler
+	Config *config.MastodonConfig
 }
 
 func (h *MastodonHandler) Pick() error {
@@ -35,7 +45,7 @@ func (h *MastodonHandler) Pick() error {
 	if err != nil {
 		return err
 	}
-	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, created_at) VALUES (?, ?, ?, ?, ?);")
+	stmt, err := h.DB.Prepare("INSERT INTO posts (id, content, url, src, type, created_at) VALUES (?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("cannot make prepare statement: %s", err)
 	}
@@ -48,37 +58,99 @@ func (h *MastodonHandler) Pick() error {
 		}
 		if lastRun.Unix() < published.Unix() && !item.Sensitive {
 			id := BuildID(&published)
-			content := buildContent(item.Content)
-			if _, err := stmt.Exec(id, content, item.Url, h.SiteConfig.Id, published.Unix()); err != nil {
-				return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
+			var content string
+			if item.Reblog == nil {
+				node, err := html.Parse(strings.NewReader(item.Content))
+				if err != nil {
+					return err
+				}
+				content = buildContent(node, true)
+				if _, err := stmt.Exec(id, content, item.Url, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
+					return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
+				}
+			} else {
+				node, err := html.Parse(strings.NewReader(item.Reblog.Content))
+				if err != nil {
+					return err
+				}
+				content = fmt.Sprintf("BT %s: %s", item.Reblog.Account.Acct, buildContent(node, true))
+				if _, err := stmt.Exec(id, content, item.Reblog.Url, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
+					return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
+				}
 			}
 		}
 	}
 	return nil
 }
 
-func buildContent(rawContent string) string {
-	brReplacedContent := strings.ReplaceAll(rawContent, "<br />", "\n")
-	contentDoc, err := htmlquery.Parse(strings.NewReader(brReplacedContent))
-	if err != nil {
-		log.Println("cannot parse html:", err)
+func buildContent(node *html.Node, insertContentFlag bool) string {
+	var content strings.Builder
+
+	if node.Type == html.ElementNode {
+		switch node.Data {
+		case "a":
+			cls := getClassList(node)
+			if !slices.Contains(cls, "hashtag") {
+				if href := getAttribute(node, "href"); href != "" {
+					content.WriteString(href)
+					insertContentFlag = false
+				}
+			} else {
+				insertContentFlag = true
+			}
+		case "br":
+			content.WriteString("\n")
+		case "span":
+			cls := getClassList(node)
+			if slices.Contains(cls, "invisible") || slices.Contains(cls, "ellipsis") {
+				insertContentFlag = false
+			}
+		}
 	}
-	content := new(strings.Builder)
-	for _, elem := range htmlquery.Find(contentDoc, "//text()") {
-		content.WriteString(htmlquery.InnerText(elem) + " ")
+
+	if node.Type == html.TextNode && insertContentFlag {
+		content.WriteString(node.Data + " ")
 	}
+
+	// 子ノードを再帰的に処理
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		content.WriteString(buildContent(child, insertContentFlag))
+	}
+
 	return content.String()
 }
 
+// ヘルパー関数: class属性を取得してスライスに変換
+func getClassList(node *html.Node) []string {
+	for _, attr := range node.Attr {
+		if attr.Key == "class" {
+			return strings.Fields(attr.Val)
+		}
+	}
+	return []string{}
+}
+
+// ヘルパー関数: 指定した属性値を取得
+func getAttribute(node *html.Node, key string) string {
+	for _, attr := range node.Attr {
+		if attr.Key == key {
+			return attr.Val
+		}
+	}
+	return ""
+}
+
 func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
-	reqUrl, err := url.Parse(h.SiteConfig.SourceUrl)
+	reqUrl, err := url.Parse(h.Config.SourceUrl)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(reqUrl.String())
 	query := make(url.Values)
 	query.Add("exclude_replies", "true")
-	query.Add("exclude_reblogs", "true")
+	//query.Add("exclude_reblogs", "true")
 	reqUrl.RawQuery = query.Encode()
+	fmt.Println(reqUrl.String())
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet, reqUrl.String(), nil)
 	if err != nil {
@@ -87,7 +159,7 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 	req.Header.Set("User-Agent", config.UserAgent)
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error access Misskey API: %s", err)
+		return nil, fmt.Errorf("error access Mastodon API: %s", err)
 	}
 	defer resp.Body.Close()
 
@@ -96,4 +168,19 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 		return nil, err
 	}
 	return &respPayload, nil
+}
+
+func (h *MastodonHandler) ReadLastRunTime(dur *time.Duration) (*time.Time, error) {
+	row := h.DB.QueryRow("SELECT created_at FROM posts WHERE src = ? ORDER BY created_at DESC;", h.Config.Id)
+	if row.Err() != nil {
+		if row.Err() == sql.ErrNoRows {
+			t := time.Now().Add(*dur)
+			return &t, row.Err()
+		}
+		return nil, row.Err()
+	}
+	var timestamp_unit int64
+	row.Scan(&timestamp_unit)
+	timestamp := time.Unix(timestamp_unit, 0)
+	return &timestamp, nil
 }

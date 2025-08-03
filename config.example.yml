@@ -9,10 +9,11 @@ hb:
     title: "planet eniehack"
     description: ""
 picker:
-    sites:
-        - id: scrapbox
-          source_url: 
-          site_url: https://scrapbox.io/eniehack/
-          name: 
-          type: scrapbox
-          icon_url: 
+  sites:
+    - id: scrapbox
+      type: scrapbox
+      params:
+        source_url: 
+        site_url: https://scrapbox.io/eniehack/
+        name: 
+        icon_url: 
