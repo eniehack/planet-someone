@@ -31,9 +31,9 @@
 </head>
 <body>
     <div class="@container">
-        <main class="mx-auto w-full @xl:max-w-[540px] @3xl:max-w-[720px] @5xl:max-w-[960px] @7xl:max-w-[1140px]">
+        <main class="pl-4 pr-8 mx-auto w-[calc(100% - 20px)] @xl:max-w-[540px] @3xl:max-w-[720px] @5xl:max-w-[960px] @7xl:max-w-[1140px]">
             <article>
-                <h1 class="text-5xl font-black my-[21px]">planet eniehack</h1>
+                <h1 class="text-5xl font-black my-[21px] py-10">planet eniehack</h1>
                 <p>
                     <a href="https://planet.debian.org/">Planet Debian</a>や<a href="https://kanzaki.com/info/planet">Planet masaka</a>のように、僕個人の最新情報を1つのページにまとめたものです。
                 </p>
@@ -41,7 +41,7 @@
                     データソースは以下の通りです:
                     <ul>
                         {{ range $k, $v := .Sites}}
-                            <li>
+                            <li class="align-middle">
                                 <img class="inline" src="{{- $v.IconUrl -}}" width="16" height="16"/>
                                 <a class="" href="{{- $v.Url -}}">
                                     {{$v.Title}}
@@ -75,7 +75,7 @@
                 {{ end -}}
             </article>
         </main> 
-        <footer class="mx-auto">
+        <footer class="mx-auto pl-4 pr-8">
              <p><a href="https://github.com/eniehack/planet-someone">planet-someone</a>(revision: {{ $.Meta.Version }})</p>
         </footer>
     </div>
