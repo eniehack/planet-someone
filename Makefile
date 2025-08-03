@@ -2,7 +2,7 @@ FLAGS =
 GO = go
 BINARIES = planetctl picker
 BINDIR = dist
-REVISION = $(shell git rev-parse HEAD)
+REVISION = $(shell git rev-parse --short=7 HEAD)
 SRC = $(shell find . -type f -name '*.go' -print)
 .PHONY: clean pre-build
 
