@@ -6,7 +6,7 @@ REVISION = $(shell git rev-parse HEAD)
 SRC = $(shell find . -type f -name '*.go' -print)
 .PHONY: clean pre-build
 
-all: pre-build $(BINARIES)
+all: pre-build $(BINARIES) hb
 
 pre-build:
 	mkdir -p ./$(BINDIR)
