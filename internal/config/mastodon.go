@@ -98,7 +98,6 @@ func (c *MastodonConfig) CompleteMetadata(ctx context.Context, id string) error 
 		}
 		srcUrl, _ := url.Parse(c.SiteUrl)
 		srcUrl.Path = fmt.Sprintf("/api/v1/accounts/%s/statuses", lookupRespPayload.Id)
-		fmt.Println(srcUrl.String())
 		c.SourceUrl = srcUrl.String()
 	}
 	if len(c.IconUrl) == 0 {

@@ -145,12 +145,9 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(reqUrl.String())
 	query := make(url.Values)
 	query.Add("exclude_replies", "true")
-	//query.Add("exclude_reblogs", "true")
 	reqUrl.RawQuery = query.Encode()
-	fmt.Println(reqUrl.String())
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet, reqUrl.String(), nil)
 	if err != nil {

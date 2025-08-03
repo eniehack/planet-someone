@@ -104,8 +104,6 @@ func addSite(ctx context.Context, cmd *cli.Command) error {
 		return errors.New("unexpected site type")
 	}
 	c.Picker.Sites = append(c.Picker.Sites, *scw)
-	fmt.Printf("SiteConfigWrapper: %+v\n", scw)
-	fmt.Printf("SiteConfigWrapper Type: %T\n", scw.RawParams)
 
 	f, err := os.OpenFile(cmd.String("config"), os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {

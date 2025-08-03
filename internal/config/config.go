@@ -76,7 +76,6 @@ func (sw *SiteConfigWrapper) UnmarshalYAML(value *yaml.Node) error {
 		if err := yaml.NewDecoder(buf).Decode(cfg); err != nil {
 			return fmt.Errorf("failed to decode scrapbox params: %w", err)
 		}
-		fmt.Printf("decoded params: %+v\n", cfg)
 		sw.RawParams = cfg
 	case model.TYPE_BLOG:
 		cfg := new(BlogConfig)
@@ -92,10 +91,7 @@ func (sw *SiteConfigWrapper) UnmarshalYAML(value *yaml.Node) error {
 }
 
 func (sw *SiteConfigWrapper) MarshalYAML() (interface{}, error) {
-	fmt.Printf("SiteConfig Type: %T, Value: %+v\n", sw.RawParams, sw.RawParams)
-
 	if sw.RawParams == nil {
-		fmt.Println("SiteConfig is nil")
 		return nil, fmt.Errorf("SiteConfig is nil")
 	}
 	result := map[string]interface{}{
@@ -112,14 +108,11 @@ func (sw *SiteConfigWrapper) MarshalYAML() (interface{}, error) {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		tag := field.Tag.Get("yaml")
-		fmt.Println(tag)
 		if len(tag) == 0 || tag == "-" {
 			continue
 		}
 		params[tag] = v.Field(i).Interface()
-		fmt.Println(tag, v.Field(i).Interface())
 	}
-	fmt.Println(params)
 	result["params"] = params
 	return result, nil
 }
@@ -167,7 +160,6 @@ func GetParam(s SiteConfigWrapper) (SiteConfig, error) {
 	}
 	params.SetId(s.Id)
 	params.SetType(s.Type)
-	fmt.Printf("params: %+v", params)
 	return params, nil
 }
 

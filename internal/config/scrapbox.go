@@ -33,7 +33,6 @@ func (c *ScrapboxConfig) GetType() string {
 }
 
 func (c *ScrapboxConfig) CompleteMetadata(ctx context.Context, id string) error {
-	fmt.Printf("c: %+v", c)
 	if len(c.SiteUrl) == 0 {
 		return fmt.Errorf("%s: site_url is undefined", id)
 	}
