@@ -159,7 +159,7 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 	req.Header.Set("User-Agent", config.UserAgent)
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error access Misskey API: %s", err)
+		return nil, fmt.Errorf("error access Mastodon API: %s", err)
 	}
 	defer resp.Body.Close()
 
