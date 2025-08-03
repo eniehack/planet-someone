@@ -8,11 +8,12 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
-	"github.com/antchfx/htmlquery"
 	"github.com/eniehack/planet-someone/internal/config"
+	"golang.org/x/net/html"
 )
 
 type MastodonUserStatusAPIResponse struct {
@@ -38,7 +39,7 @@ func (h *MastodonHandler) Pick() error {
 	if err != nil {
 		return err
 	}
-	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, created_at) VALUES (?, ?, ?, ?, ?);")
+	stmt, err := h.DB.Prepare("INSERT INTO posts (id, content, url, src, type, created_at) VALUES (?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("cannot make prepare statement: %s", err)
 	}
@@ -51,8 +52,21 @@ func (h *MastodonHandler) Pick() error {
 		}
 		if lastRun.Unix() < published.Unix() && !item.Sensitive {
 			id := BuildID(&published)
-			content := buildContent(item.Content)
-			if _, err := stmt.Exec(id, content, item.Url, h.Config.Id, published.Unix()); err != nil {
+			var content string
+			if item.Reblog == nil {
+				node, err := html.Parse(strings.NewReader(item.Content))
+				if err != nil {
+					return err
+				}
+				content = buildContent(node, true)
+			} else {
+				node, err := html.Parse(strings.NewReader(item.Reblog.Content))
+				if err != nil {
+					return err
+				}
+				content = fmt.Sprintf("BT: %s", buildContent(node, true))
+			}
+			if _, err := stmt.Exec(id, content, item.Url, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Url, err)
 			}
 		}
@@ -60,17 +74,61 @@ func (h *MastodonHandler) Pick() error {
 	return nil
 }
 
-func buildContent(rawContent string) string {
-	brReplacedContent := strings.ReplaceAll(rawContent, "<br />", "\n")
-	contentDoc, err := htmlquery.Parse(strings.NewReader(brReplacedContent))
-	if err != nil {
-		log.Println("cannot parse html:", err)
+func buildContent(node *html.Node, insertContentFlag bool) string {
+	var content strings.Builder
+
+	if node.Type == html.ElementNode {
+		switch node.Data {
+		case "a":
+			cls := getClassList(node)
+			if !slices.Contains(cls, "hashtag") {
+				if href := getAttribute(node, "href"); href != "" {
+					content.WriteString(href)
+					insertContentFlag = false
+				}
+			} else {
+				insertContentFlag = true
+			}
+		case "br":
+			content.WriteString("\n")
+		case "span":
+			cls := getClassList(node)
+			if slices.Contains(cls, "invisible") || slices.Contains(cls, "ellipsis") {
+				insertContentFlag = false
+			}
+		}
 	}
-	content := new(strings.Builder)
-	for _, elem := range htmlquery.Find(contentDoc, "//text()") {
-		content.WriteString(htmlquery.InnerText(elem) + " ")
+
+	if node.Type == html.TextNode && insertContentFlag {
+		content.WriteString(node.Data + " ")
 	}
+
+	// 子ノードを再帰的に処理
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		content.WriteString(buildContent(child, insertContentFlag))
+	}
+
 	return content.String()
+}
+
+// ヘルパー関数: class属性を取得してスライスに変換
+func getClassList(node *html.Node) []string {
+	for _, attr := range node.Attr {
+		if attr.Key == "class" {
+			return strings.Fields(attr.Val)
+		}
+	}
+	return []string{}
+}
+
+// ヘルパー関数: 指定した属性値を取得
+func getAttribute(node *html.Node, key string) string {
+	for _, attr := range node.Attr {
+		if attr.Key == key {
+			return attr.Val
+		}
+	}
+	return ""
 }
 
 func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
@@ -78,10 +136,12 @@ func (h MastodonHandler) Fetch() (*[]MastodonUserStatusAPIResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(reqUrl.String())
 	query := make(url.Values)
 	query.Add("exclude_replies", "true")
 	//query.Add("exclude_reblogs", "true")
 	reqUrl.RawQuery = query.Encode()
+	fmt.Println(reqUrl.String())
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet, reqUrl.String(), nil)
 	if err != nil {

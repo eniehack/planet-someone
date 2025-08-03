@@ -49,7 +49,7 @@ func (h *MisskeyHandler) Pick() error {
 	if err != nil {
 		return fmt.Errorf("cannot fetch misskey posts: %s", err)
 	}
-	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, created_at) VALUES (?, ?, ?, ?, ?);")
+	stmt, err := h.DB.Prepare("INSERT INTO posts (id, content, url, src, type, created_at) VALUES (?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("cannot make prepare statement: %s", err)
 	}
@@ -63,7 +63,7 @@ func (h *MisskeyHandler) Pick() error {
 		if lastRun.Unix() < published.Unix() && item.ContentWarning == nil {
 			id := BuildID(&published)
 			link := fmt.Sprintf("https://%s/notes/%s", reqUrl.Host, item.Id)
-			if _, err := stmt.Exec(id, item.Text, link, h.Config.Id, published.Unix()); err != nil {
+			if _, err := stmt.Exec(id, item.Text, link, h.Config.Id, h.Config.Type, published.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", link, err)
 			}
 		}

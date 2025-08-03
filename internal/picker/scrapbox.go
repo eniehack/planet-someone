@@ -24,7 +24,7 @@ func (h *ScrapboxHandler) Pick() error {
 	if err != nil {
 		return fmt.Errorf("error parsing rss feed: %s", err)
 	}
-	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, created_at) VALUES (?, ?, ?, ?, ?);")
+	stmt, err := h.DB.Prepare("INSERT INTO posts (id, title, url, src, type, created_at) VALUES (?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		return fmt.Errorf("cannot make prepare statement: %s", err)
 	}
@@ -32,7 +32,7 @@ func (h *ScrapboxHandler) Pick() error {
 	for _, item := range feed.Items {
 		if lastRun.Unix() < item.PublishedParsed.Unix() {
 			id := BuildID(item.PublishedParsed)
-			if _, err := stmt.Exec(id, item.Title, item.Link, h.Config.Id, item.PublishedParsed.Unix()); err != nil {
+			if _, err := stmt.Exec(id, item.Title, item.Link, h.Config.Id, h.Config.Type, item.PublishedParsed.Unix()); err != nil {
 				return fmt.Errorf("cannot insert item(%s): %s", item.Link, err)
 			}
 		}
