@@ -19,30 +19,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type Post struct {
-	Id         string
-	Content    string
-	Url        string
-	Date       int64
-	ParsedDate *time.Time
-	Src        string
-}
-
-type Site struct {
-	Url     string
-	IconUrl string
-	Title   string
-}
-
-type Meta struct {
-	Url         string
-	Description string
-	Title       string
-}
-
-type Config struct {
-	Meta Meta
-}
+var GitRevision = "unknown"
 
 func main() {
 	var configFilePath string
@@ -146,7 +123,7 @@ func main() {
 		"Sites":  sites,
 		"Config": hbConfig,
 		"Meta": hb.BinMeta{
-			Version: GIT_REVISION,
+			Version: GitRevision,
 		},
 	}
 	if err := tmpl.Execute(os.Stdout, data); err != nil {
