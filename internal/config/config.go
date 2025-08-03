@@ -10,6 +10,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/eniehack/planet-someone/internal/hb"
 	"github.com/eniehack/planet-someone/internal/model"
 	"gopkg.in/yaml.v3"
 )
@@ -197,6 +198,7 @@ type SiteConfig interface {
 	SetType(typ string)
 	GetType() string
 	CompleteMetadata(ctx context.Context, id string) error
+	GetMetadata() *hb.Site
 }
 
 type SiteConfigWrapper struct {

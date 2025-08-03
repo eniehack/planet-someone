@@ -13,6 +13,8 @@ import (
 	_ "time/tzdata"
 
 	"github.com/eniehack/planet-someone/internal/config"
+	"github.com/eniehack/planet-someone/internal/hb"
+	"github.com/eniehack/planet-someone/internal/model"
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 )
@@ -60,13 +62,13 @@ func main() {
 		slog.Error(fmt.Sprintf("cannot parse template: %s", err))
 		os.Exit(1)
 	}
-	hbConfig := new(Config)
-	hbConfig.Meta = Meta{
+	hbConfig := new(hb.Config)
+	hbConfig.Meta = hb.PageMeta{
 		Url:         c.Hb.Url,
 		Title:       c.Hb.Meta.Title,
 		Description: c.Hb.Meta.Description,
 	}
-	posts := make(map[string][]Post)
+	posts := make(map[string][]hb.Post)
 	tz, err := time.LoadLocation(c.Hb.TimeZone)
 	if err != nil {
 		slog.Error(fmt.Sprintf("cannot parse timezone: %s", err))
@@ -87,7 +89,7 @@ func main() {
 			os.Exit(1)
 		}
 		for res.Next() {
-			post := Post{}
+			post := hb.Post{}
 			if err := res.Scan(
 				&post.Id,
 				&post.Content,
@@ -108,12 +110,33 @@ func main() {
 		keys = append(keys, k)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
-	sites := map[string]Site{}
+	sites := map[string]hb.Site{}
 	for _, site := range c.Picker.Sites {
-		sites[site.Id] = Site{
-			Url:     site.SiteUrl,
-			IconUrl: site.IconUrl,
-			Title:   site.Name,
+		switch site.Type {
+		case model.TYPE_MASTODON:
+			param, ok := site.RawParams.(*config.MastodonConfig)
+			if !ok {
+				return
+			}
+			sites[site.Id] = *param.GetMetadata()
+		case model.TYPE_MISSKEY:
+			param, ok := site.RawParams.(*config.MisskeyConfig)
+			if !ok {
+				return
+			}
+			sites[site.Id] = *param.GetMetadata()
+		case model.TYPE_BLOG:
+			param, ok := site.RawParams.(*config.BlogConfig)
+			if !ok {
+				return
+			}
+			sites[site.Id] = *param.GetMetadata()
+		case model.TYPE_SCRAPBOX:
+			param, ok := site.RawParams.(*config.ScrapboxConfig)
+			if !ok {
+				return
+			}
+			sites[site.Id] = *param.GetMetadata()
 		}
 	}
 
@@ -122,6 +145,9 @@ func main() {
 		"Posts":  posts,
 		"Sites":  sites,
 		"Config": hbConfig,
+		"Meta": hb.BinMeta{
+			Version: GIT_REVISION,
+		},
 	}
 	if err := tmpl.Execute(os.Stdout, data); err != nil {
 		slog.Error(fmt.Sprintf("failed to execute template: %s", err))

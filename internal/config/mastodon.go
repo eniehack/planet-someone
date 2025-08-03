@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/antchfx/htmlquery"
+	"github.com/eniehack/planet-someone/internal/hb"
 	pkgUrl "github.com/eniehack/planet-someone/pkg/url"
 )
 
@@ -29,6 +30,14 @@ func (c *MastodonConfig) SetType(typ string) {
 
 func (c *MastodonConfig) GetType() string {
 	return c.Type
+}
+
+func (c *MastodonConfig) GetMetadata() *hb.Site {
+	return &hb.Site{
+		Url:     c.SiteUrl,
+		IconUrl: c.IconUrl,
+		Title:   c.Name,
+	}
 }
 
 func (c *MastodonConfig) CompleteMetadata(ctx context.Context, id string) error {

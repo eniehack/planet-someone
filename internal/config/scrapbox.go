@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/antchfx/htmlquery"
+	"github.com/eniehack/planet-someone/internal/hb"
 	pkgUrl "github.com/eniehack/planet-someone/pkg/url"
 )
 
@@ -76,4 +77,12 @@ func (c *ScrapboxConfig) CompleteMetadata(ctx context.Context, id string) error 
 		c.IconUrl = iconUrl.String()
 	}
 	return nil
+}
+
+func (c *ScrapboxConfig) GetMetadata() *hb.Site {
+	return &hb.Site{
+		Url:     c.SiteUrl,
+		IconUrl: c.IconUrl,
+		Title:   c.Name,
+	}
 }
